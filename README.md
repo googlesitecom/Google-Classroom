@@ -15,20 +15,60 @@ directamente desde el disco.
 
 ## Como meterle mods (como en el Java normal)
 
-1. Abre el juego y pulsa el boton **"Mods"** (aparece en el menu principal y
+1. La **primera vez que entras al sitio** te aparecera un panel de **"Mods
+   requeridos"**: todos los jugadores nuevos deben descargar los mods del sitio
+   antes de poder jugar (se descargan una sola vez y se guardan en tu
+   navegador).
+2. Dentro del juego, pulsa el boton **"Mods"** (aparece en el menu principal y
    tambien en el menu de pausa dentro de una partida).
-2. Se abrira el **Gestor de Mods**, donde puedes:
-   - **Subir archivo...** -> elegir un archivo `.js` de tu computadora (equivale
-     a meter un `.jar` en la carpeta `mods` del Java normal).
-   - **Anadir nuevo (URL)** -> instalar un mod desde una direccion web.
+3. Se abrira el **Gestor de Mods**, donde puedes:
+   - **Subir archivo (.js o .jar)...** -> elegir un archivo `.js` o `.jar` de tu
+     computadora (equivale a meter un `.jar` en la carpeta `mods` del Java
+     normal).
+   - **Anadir nuevo (URL o .jar)** -> instalar un mod desde una direccion web
+     (si la URL termina en `.jar` se descarga y se extrae el mod de dentro).
    - **[X]** -> eliminar un mod de la lista.
    - **Actualizar lista** -> refrescar el estado (CARGADO / FALLO).
-3. Los mods instalados se guardan en tu navegador y se cargan solos cada vez
+4. Los mods instalados se guardan en tu navegador y se cargan solos cada vez
    que abras el juego. Para quitar por completo un mod eliminado, recarga la
    pagina.
 
-Este repo ya incluye 2 mods de ejemplo (se instalan automaticamente la primera
-vez que entras, y los puedes borrar desde el Gestor de Mods):
+### Sobre los mods .jar
+
+- Los `.jar` son archivos ZIP: el gestor abre el `.jar`, busca el mod `.js` que
+  lleva dentro (con preferencia a `mod.js`) y lo instala.
+- Los `.jar` de **Java real** (los de Forge, que contienen archivos `.class`)
+  **NO funcionan** en la version del navegador, porque el juego esta compilado
+  a JavaScript y no hay maquina virtual de Java. Si intentas subir uno, el
+  gestor te avisara con un mensaje claro.
+- Para convertir un mod de Java real tendrias que reescribirlo en JavaScript
+  usando la ModAPI (ver mas abajo).
+
+### Paquete de mods obligatorio (para todos los jugadores)
+
+Los archivos del paquete que debe descargar todo jugador nuevo estan en
+`mods/mods.json`:
+
+```json
+{
+  "version": 1,
+  "nombre": "Paquete de mods del sitio",
+  "mods": [
+    { "archivo": "fps.js", "nombre": "Contador de FPS" },
+    { "archivo": "bienvenida.js", "nombre": "Mensajes de bienvenida" }
+  ]
+}
+```
+
+Para agregar un mod al paquete de todos los jugadores:
+
+1. Sube el archivo `.js` (o un `.jar` con el `.js` dentro) a la carpeta `mods/`.
+2. Agrega su entrada en `mods/mods.json`.
+3. **Sube el numero `version`** (por ejemplo de `1` a `2`): asi los jugadores que
+   ya entraron antes veran de nuevo el panel y descargaran la actualizacion.
+
+Este repo ya incluye 2 mods de ejemplo en el paquete (los puedes borrar de
+`mods/mods.json` si no los quieres obligatorios):
 
 | Mod | Que hace |
 | --- | --- |
@@ -75,14 +115,15 @@ Documentacion completa de la API (en ingles):
 ## Estructura del repo
 
 ```
-index.html     Pagina principal (carga el juego y preinstala los mods de ejemplo)
+index.html     Pagina principal (carga el juego y exige el paquete de mods)
 classes.js     El juego (EaglercraftX 1.8.8 + EaglerForge v1.3.2 inyectado)
 ModAPI.js      Nucleo de la API de mods (eventos)
-ModLoader.js   Cargador de mods (URLs y archivos subidos)
-ModGUI.js      Gestor de Mods (interfaz en espanol)
+ModLoader.js   Cargador de mods (URLs, archivos subidos y mods guardados)
+ModGUI.js      Gestor de Mods (interfaz en espanol, sube .js y .jar)
+modpack.js     Paquete obligatorio + almacen de mods + lector de .jar
 assets.epk     Recursos del juego (texturas, sonidos)
 lang/          Traducciones del juego (incluye es_MX, es_ES, es_AR, etc.)
-mods/          Mods de ejemplo incluidos
+mods/          Mods del paquete + mods.json (manifiesto)
 ```
 
 ## Notas
@@ -93,4 +134,7 @@ mods/          Mods de ejemplo incluidos
 - Los mods tienen control total sobre el juego: solo instala mods en los que
   confies.
 - Para multiplayer usa los relays de lax1dude ya configurados, o conectate a
-  servidores compatibles con Eaglercraft.
+  servidores compatibles con Eaglercraft. El panel de mods obligatorio aplica
+  al entrar al **sitio**; en multijugador, cada jugador debe haber entrado al
+  sitio para tener los mods instalados (no se pueden forzar mods desde un
+  servidor estatico).

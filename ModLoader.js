@@ -23,6 +23,24 @@ function loadLoader() {
       }
       window.eaglerMLoaderMainRun = true;
     }
+    // Mods guardados localmente (.js subidos o extraidos de .jar):
+    // se convierte "local:clave" en una URL data: con el codigo real.
+    if (window.ModStore) {
+      ModsArr = ModsArr.map(function (entrada) {
+        if (
+          typeof entrada === "string" &&
+          entrada.indexOf("local:") === 0
+        ) {
+          var resuelta = window.ModStore.resolve(entrada);
+          if (resuelta) {
+            console.log("EaglerML: Resolviendo mod local: " + entrada);
+            return resuelta;
+          }
+          console.warn("EaglerML: No se encontro el mod local: " + entrada);
+        }
+        return entrada;
+      });
+    }
     if (window.noLoadMods === true) {
       ModsArr.splice(0, ModsArr.length);
     }

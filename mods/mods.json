@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "nombre": "Paquete de mods del sitio",
+  "descripcion": "Mods que deben descargar todos los jugadores al entrar por primera vez.",
+  "mods": [
+    { "archivo": "fps.js", "nombre": "Contador de FPS" },
+    { "archivo": "bienvenida.js", "nombre": "Mensajes de bienvenida" }
+  ]
+}

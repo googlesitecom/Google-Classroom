@@ -65,12 +65,19 @@ function displayGui() {
       urlBox.style = "user-select: text;";
       var textWrapper = document.createElement("div");
       textWrapper.style = `max-width: 100%; overflow-wrap: anywhere; max-height: 3rem; overflow-y: scroll;`;
-      // Nombre legible para los mods de ejemplo incluidos
+      // Nombre legible para los mods instalados (local: o URLs de ejemplo)
       var prettyUrl = url;
-      if (typeof url === "string" && url.indexOf("mods/fps.js") !== -1) {
+      if (typeof url === "string" && url.indexOf("mods/fps.js") !== -1 && url.indexOf("local:") !== 0) {
         prettyUrl = "mods/fps.js  (Contador de FPS)";
-      } else if (typeof url === "string" && url.indexOf("mods/bienvenida.js") !== -1) {
+      } else if (typeof url === "string" && url.indexOf("mods/bienvenida.js") !== -1 && url.indexOf("local:") !== 0) {
         prettyUrl = "mods/bienvenida.js  (Mensajes de bienvenida)";
+      } else if (typeof url === "string" && url.indexOf("local:") === 0 && window.ModStore) {
+        var v = window.ModStore.get(url);
+        if (v) {
+          prettyUrl = v.n + (v.t === "jar" ? "  (Mod .jar instalado)" : "  (Mod .js instalado)");
+        } else {
+          prettyUrl = url + "  (ya no esta guardado)";
+        }
       } else if (typeof url === "string" && url.startsWith("data:text/javascript")) {
         prettyUrl = "(Mod subido desde un archivo .js)";
       } else if (typeof url === "string" && url.indexOf(";base64") !== -1) {
@@ -81,10 +88,16 @@ function displayGui() {
       row.appendChild(urlBox);
       var statusBox = document.createElement("td");
       statusBox.innerHTML = ((curl) => {
+        // Un mod local cuenta como cargado si su script data: esta en la pagina
+        var candidatos = [curl];
+        if (window.ModStore && typeof curl === "string" && curl.indexOf("local:") === 0) {
+          var r = window.ModStore.resolve(curl);
+          if (r) candidatos.push(r);
+        }
         var targs = document.querySelectorAll("script[data-Mod]");
         for (let i = 0; i < targs.length; i++) {
           const elem = targs[i];
-          if (elem.getAttribute("data-Mod") === curl) {
+          if (candidatos.indexOf(elem.getAttribute("data-Mod")) !== -1) {
             return "CARGADO";
           }
         }
@@ -110,6 +123,9 @@ function displayGui() {
         }
         Mods.splice(Mods.indexOf(url), 1);
         localStorage.setItem("ml::Mods", JSON.stringify(Mods));
+        if (window.ModStore && typeof url === "string" && url.indexOf("local:") === 0) {
+          window.ModStore.remove(url);
+        }
         gui();
       });
       statusBox.appendChild(binBtn);
@@ -120,11 +136,34 @@ function displayGui() {
     var addBtn = document.createElement("button");
     addBtn.style =
       "background: transparent; text-align: center; color: yellow; cursor: pointer; font-family: 'Minecraftia', sans-serif; text-decoration: underline; border: 0; margin-right: 1rem;  font-size: 1rem;";
-    addBtn.innerHTML = "Anadir nuevo (URL)";
+    addBtn.innerHTML = "Anadir nuevo (URL o .jar)";
     addBtn.addEventListener("click", () => {
-      var newMod = window.prompt("URL del mod (.js):", "https://ejemplo.com/mi-mod.js");
+      var newMod = window.prompt("URL del mod (.js o .jar):", "https://ejemplo.com/mi-mod.js");
       if (!newMod) {
         return; // El usuario cancelo
+      }
+      if (/\.(jar|zip)(\?|$)/i.test(newMod)) {
+        // URL de un .jar: se descarga y se extrae el .js de dentro
+        fetch(newMod)
+          .then(function (r) {
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            return r.arrayBuffer();
+          })
+          .then(function (buf) {
+            return window.instalarArchivo(newMod.split("/").pop() || "mod.jar", buf);
+          })
+          .then(function (ref) {
+            Mods.push(ref);
+            localStorage.setItem("ml::Mods", JSON.stringify(Mods));
+            if (window.ModLoader) {
+              ModLoader([ref]);
+            }
+            gui();
+          })
+          .catch(function (e) {
+            window.alert("No se pudo instalar el .jar: " + (e && e.message ? e.message : e));
+          });
+        return;
       }
       Mods.push(
         newMod
@@ -139,24 +178,27 @@ function displayGui() {
     var uploadBtn = document.createElement("button");
     uploadBtn.style =
       "background: transparent; text-align: center; color: yellow; cursor: pointer; font-family: 'Minecraftia', sans-serif; text-decoration: underline; border: 0;  font-size: 1rem;";
-    uploadBtn.innerHTML = "Subir archivo...";
+    uploadBtn.innerHTML = "Subir archivo (.js o .jar)...";
     uploadBtn.addEventListener("click", function uploadBtnListener() {
       var filePicker = document.createElement("input");
       filePicker.type = "file";
-      filePicker.accept = ".js";
+      filePicker.accept = ".js,.jar";
       filePicker.addEventListener("input", function onInput() {
         if (filePicker.files[0]) {
-          var reader = new FileReader();
-          reader.addEventListener("load", function onModRead() {
-            var newMod = reader.result.replace(";base64", `;fs=${encodeURIComponent(filePicker.files[0].name) || "unknown"};base64`);
-            Mods.push(newMod);
+          var archivo = filePicker.files[0];
+          archivo.arrayBuffer().then(function (buf) {
+            return window.instalarArchivo(archivo.name, buf);
+          }).then(function (ref) {
+            Mods.push(ref);
             localStorage.setItem("ml::Mods", JSON.stringify(Mods));
-            if(window.ModLoader){
-              ModLoader([newMod]);
+            if (window.ModLoader) {
+              ModLoader([ref]);
             }
             gui();
+          }).catch(function (e) {
+            window.alert("No se pudo instalar el mod: " + (e && e.message ? e.message : e));
+            console.error(e);
           });
-          reader.readAsDataURL(filePicker.files[0]);
         }
       });
       filePicker.click();

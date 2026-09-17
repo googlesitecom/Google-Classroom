@@ -18,6 +18,7 @@
 <script type="text/javascript" src="ModAPI.js"></script>
 <script type="text/javascript" src="ModLoader.js"></script>
 <script type="text/javascript" src="ModGUI.js"></script>
+<script type="text/javascript" src="modpack.js"></script>
 <script type="text/javascript" src="classes.js"></script>
 <script type="text/javascript">
 "use strict";
@@ -89,23 +90,6 @@ window.addEventListener("load", () => {
                         checkRelaysForUpdates: true
                 };
 
-                // %%%%%%%%% mods %%%%%%%%%%%%
-
-                // Primera visita: instala los mods de ejemplo incluidos.
-                // Se pueden agregar/quitar desde el boton "Mods" dentro del juego.
-                try {
-                        if(localStorage.getItem("ml::Mods") === null) {
-                                localStorage.setItem("ml::Mods", JSON.stringify([
-                                        "mods/fps.js",
-                                        "mods/bienvenida.js"
-                                ]));
-                        }
-                }catch(ex) {
-                        console.error("No se pudo inicializar la lista de mods:", ex);
-                }
-
-                // %%%%%%%%%%%%%%%%%%%%%%%%%%%
-
                 var q = window.location.search;
                 if(typeof q === "string" && q.startsWith("?")) {
                         q = new URLSearchParams(q);
@@ -113,16 +97,46 @@ window.addEventListener("load", () => {
                         if(s) window.eaglercraftXOpts.joinServer = s;
                 }
 
-                try {
-                        if(typeof main !== "function") {
-                                mostrarError("Error: classes.js no se cargo correctamente. Recarga la pagina (F5).");
-                                return;
+                // %%%%%%%%% mods %%%%%%%%%%%%
+
+                // Paquete de mods OBLIGATORIO: todo jugador nuevo debe
+                // descargar los mods del sitio (mods/mods.json) antes de jugar.
+                // Se guardan en localStorage, asi solo se descargan una vez.
+                async function arrancarConMods() {
+                        try {
+                                if(window.ModPackGate) {
+                                        var listo = await window.ModPackGate.ensure();
+                                        if(!listo) {
+                                                mostrarError("Error: no se pudieron instalar los mods del sitio.");
+                                                return;
+                                        }
+                                }else{
+                                        // Respaldo por si modpack.js no se cargo
+                                        if(localStorage.getItem("ml::Mods") === null) {
+                                                localStorage.setItem("ml::Mods", JSON.stringify([
+                                                        "mods/fps.js",
+                                                        "mods/bienvenida.js"
+                                                ]));
+                                        }
+                                }
+                        }catch(ex) {
+                                console.error("Error al instalar el paquete de mods:", ex);
                         }
-                        main();
-                }catch(ex) {
-                        mostrarError("Error al iniciar el juego: " + (ex && ex.message ? ex.message : ex));
-                        console.error(ex);
+
+                        try {
+                                if(typeof main !== "function") {
+                                        mostrarError("Error: classes.js no se cargo correctamente. Recarga la pagina (F5).");
+                                        return;
+                                }
+                                main();
+                        }catch(ex) {
+                                mostrarError("Error al iniciar el juego: " + (ex && ex.message ? ex.message : ex));
+                                console.error(ex);
+                        }
                 }
+                arrancarConMods();
+
+                // %%%%%%%%%%%%%%%%%%%%%%%%%%%
         }
 });
 </script>
