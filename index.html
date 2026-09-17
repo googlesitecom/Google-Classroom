@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html style="width:100%;height:100%;background-color:black;">
+<html style="width:100%;height:100%;background-color:#0a0e14;">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
-<meta name="description" content="EaglercraftX 1.8 Offline" />
-<meta name="keywords" content="eaglercraft, eaglercraftx, minecraft, 1.8, 1.8.8" />
+<meta name="description" content="JEFFCRAFT 1.8" />
+<meta name="keywords" content="jeffcraft, 1.8, 1.8.8, mods, navegador" />
 
 <link rel="icon" type="image/png" href="https://ssl.gstatic.com/classroom/favicon.png">
 
@@ -12,8 +12,8 @@
 
 <meta property="og:locale" content="en-US" />
 <meta property="og:type" content="website" />
-<meta property="og:title" content="EaglercraftX 1.8" />
-<meta property="og:description" content="Play minecraft 1.8 in your browser" />
+<meta property="og:title" content="JEFFCRAFT 1.8" />
+<meta property="og:description" content="JEFFCRAFT: juega, construye y moddea en tu navegador" />
 
 <script type="text/javascript" src="ModAPI.js"></script>
 <script type="text/javascript" src="ModLoader.js"></script>
@@ -27,20 +27,43 @@
 function ocultarCargando() {
         var ov = document.getElementById("carga");
         if(ov) {
-                ov.style.transition = "opacity 0.4s ease";
+                ov.style.transition = "opacity 0.5s ease";
                 ov.style.opacity = "0";
-                setTimeout(function() { if(ov && ov.parentNode) ov.parentNode.removeChild(ov); }, 450);
+                setTimeout(function() { if(ov && ov.parentNode) ov.parentNode.removeChild(ov); }, 550);
         }
 }
 
-// Muestra un error en lugar de "Cargando..." si algo falla.
+// Mensajes de la barra de estado de JEFFCRAFT mientras carga.
+(function() {
+        var mensajes = [
+                "Cargando JEFFCRAFT...",
+                "Descargando mods de Java...",
+                "Desempacando recursos...",
+                "Preparando el mundo...",
+                "Casi listo..."
+        ];
+        var i = 0;
+        window.addEventListener("load", function() {
+                var el = document.getElementById("carga_msg");
+                if(!el) return;
+                setInterval(function() {
+                        if(!document.getElementById("carga")) return;
+                        i = (i + 1) % mensajes.length;
+                        el.textContent = mensajes[i];
+                }, 2600);
+        });
+})();
+
+// Muestra un error en lugar del estado si algo falla.
 function mostrarError(msg) {
         var el = document.getElementById("carga_msg");
         if(el) {
                 el.textContent = msg;
                 el.style.color = "#ff6a6a";
-                el.style.fontSize = "16px";
+                el.style.fontSize = "15px";
         }
+        var bar = document.getElementById("carga_barra");
+        if(bar) bar.style.background = "#7a2f2f";
 }
 
 // Si algun archivo (classes.js, ModAPI.js, ...) no se puede descargar, avisar.
@@ -141,9 +164,44 @@ window.addEventListener("load", () => {
 });
 </script>
 </head>
-<body style="margin:0px;width:100%;height:100%;overflow:hidden;background-color:black;" id="game_frame">
-<div id="carga" style="position:fixed;top:0px;left:0px;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background-color:black;z-index:999;pointer-events:none;">
-        <h1 id="carga_msg" style="color:#cccccc;font-family:sans-serif;font-weight:normal;">Cargando...</h1>
+<body style="margin:0px;width:100%;height:100%;overflow:hidden;background-color:#0a0e14;" id="game_frame">
+<div id="carga" style="position:fixed;top:0px;left:0px;width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;background-color:#0a0e14;z-index:999;pointer-events:none;overflow:hidden;">
+
+        <!-- patron de bloques de fondo -->
+        <div style="position:absolute;top:0px;left:0px;width:100%;height:100%;opacity:0.16;
+                background-image:
+                        linear-gradient(45deg, #1b2b3a 25%, transparent 25%, transparent 75%, #1b2b3a 75%),
+                        linear-gradient(45deg, #1b2b3a 25%, transparent 25%, transparent 75%, #1b2b3a 75%);
+                background-size:48px 48px;
+                background-position:0 0,24px 24px;
+                animation:jcBlocks 14s linear infinite;
+                -webkit-animation:jcBlocks 14s linear infinite;"></div>
+        <style>
+                @keyframes jcBlocks { from { background-position:0 0,24px 24px; } to { background-position:96px 96px,120px 120px; } }
+                @-webkit-keyframes jcBlocks { from { background-position:0 0,24px 24px; } to { background-position:96px 96px,120px 120px; } }
+                @keyframes jcPulso { 0%,100% { opacity:1; } 50% { opacity:0.55; } }
+                @-webkit-keyframes jcPulso { 0%,100% { opacity:1; } 50% { opacity:0.55; } }
+                @keyframes jcShimmer { from { transform:translateX(-160px); } to { transform:translateX(320px); } }
+                @-webkit-keyframes jcShimmer { from { transform:translateX(-160px); } to { transform:translateX(320px); } }
+        </style>
+
+        <!-- marca JEFFCRAFT -->
+        <div style="position:relative;text-align:center;font-family:'Courier New',monospace;font-weight:bold;user-select:none;-webkit-user-select:none;">
+                <div style="font-size:54px;letter-spacing:4px;line-height:1;margin-bottom:6px;text-shadow:3px 3px 0 #06110a,6px 6px 0 rgba(0,0,0,0.45);">
+                        <span style="color:#4fc058;">JEFF</span><span style="color:#eeb13e;">CRAFT</span>
+                </div>
+                <div style="font-size:13px;color:#7d8fa3;letter-spacing:6px;margin-bottom:34px;">1.8&nbsp;&middot;&nbsp;EDICION&nbsp;MODS</div>
+
+                <!-- barra de progreso animada -->
+                <div style="position:relative;width:280px;height:14px;margin:0 auto;background:#141c26;border:2px solid #2a3a4d;box-shadow:0 0 0 2px #060a0e, inset 0 0 6px rgba(0,0,0,0.6);overflow:hidden;">
+                        <div id="carga_barra" style="position:absolute;top:0px;left:0px;width:100%;height:100%;background:linear-gradient(90deg,#2d7a38 0%,#4fc058 55%,#eeb13e 100%);opacity:0.9;"></div>
+                        <div style="position:absolute;top:0px;left:0px;width:70px;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.35),transparent);animation:jcShimmer 1.6s ease-in-out infinite;-webkit-animation:jcShimmer 1.6s ease-in-out infinite;"></div>
+                        <!-- marcas de bloque -->
+                        <div style="position:absolute;top:0px;left:0px;width:100%;height:100%;background-image:linear-gradient(90deg, rgba(0,0,0,0.35) 1px, transparent 1px);background-size:14px 100%;"></div>
+                </div>
+
+                <div id="carga_msg" style="margin-top:22px;color:#b7c5d4;font-family:sans-serif;font-weight:normal;font-size:15px;letter-spacing:1px;animation:jcPulso 2.2s ease-in-out infinite;-webkit-animation:jcPulso 2.2s ease-in-out infinite;">Cargando JEFFCRAFT...</div>
+        </div>
 </div>
 </body>
 </html>

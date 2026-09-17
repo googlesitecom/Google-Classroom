@@ -18,10 +18,10 @@ function displayGui() {
     var Mods = JSON.parse(localStorage.getItem("ml::Mods"));
     var container = document.createElement("div");
     container.id = "eaglerpl_gui";
-    container.style = `width:100%; height: 100%; position: fixed; top: 0; left: 0; z-index: 10; color: white; font-family: Minecraftia, sans-serif; overflow-y: scroll; overflow-x: hidden; background-image: url(data:image/png;base64,UklGRhoBAABXRUJQVlA4TA0BAAAvn8AnAIWjtpEECdnA2N0DsTROy7xUqfrWw0jbyLkJKTz0+I20jTT/Bo89e1YR/Wfktm0Y+wNKLobT7QP/n/B7Z/naW26QHoTpHB7LFouyKHlzeHxfCStSuj9KdbC8z1IJ5iWiyQed48vtYJ+lUu0t4VwranS1XMIutSiLYlbb8G54uf2p3VPSfRZtSrlsPFjOzZZrd/us3B3uK+HcHJQql+xbLMrS/WqNpm6DeZ/VIPVYaN/KzUbp91nd9xl5pYu50dU2W417nbdTj5l2Ne92uM9qXNpyf6+oXkabHKXaZ1HS4Iaqpim+1KIJ+0M49/LjNbTGP5mrrMZEuc7Uzcb1ViOJ6TuOt4NGJs+zDgA=); background-color: rgb(60,60,60); background-blend-mode: multiply; background-size: 64px;`;
+    container.style = `width:100%; height: 100%; position: fixed; top: 0; left: 0; z-index: 10; color: white; font-family: Minecraftia, sans-serif; overflow-y: scroll; overflow-x: hidden; background-image: url(data:image/png;base64,UklGRhoBAABXRUJQVlA4TA0BAAAvn8AnAIWjtpEECdnA2N0DsTROy7xUqfrWw0jbyLkJKTz0+I20jTT/Bo89e1YR/Wfktm0Y+wNKLobT7QP/n/B7Z/naW26QHoTpHB7LFouyKHlzeHxfCStSuj9KdbC8z1IJ5iWiyQed48vtYJ+lUu0t4VwranS1XMIutSiLYlbb8G54uf2p3VPSfRZtSrlsPFjOzZZrd/us3B3uK+HcHJQql+xbLMrS/WqNpm6DeZ/VIPVYaN/KzUbp91nd9xl5pYu50dU2W417nbdTj5l2Ne92uM9qXNpyf6+oXkabHKXaZ1HS4Iaqpim+1KIJ+0M49/LjNbTGP5mrrMZEuc7Uzcb1ViOJ6TuOt4NGJs+zDgA=); background-color: rgb(16,23,32); background-blend-mode: multiply; background-size: 64px;`;
     var title = document.createElement("h1");
-    title.style = "text-shadow: 0px 0px 4px;";
-    title.innerHTML = "Gestor de Mods";
+    title.style = "text-shadow: 0px 0px 4px; border-bottom: 2px solid #2a3a4d; padding-bottom: 0.6rem;";
+    title.innerHTML = "<span style='color:#4fc058'>JEFF</span><span style='color:#eeb13e'>CRAFT</span> <span style='color:#7d8fa3;font-size:0.55em'>&middot; Gestor de Mods</span>";
     var closeButton = document.createElement("a");
     closeButton.style = `margin-left: 2rem; color: red;`;
     closeButton.href = "javascript:void(0)";
@@ -39,7 +39,7 @@ function displayGui() {
     container.appendChild(warningPoster);
 
     var tipPoster = document.createElement("p");
-    tipPoster.style = "font-size: 0.8rem; color: yellow;";
+    tipPoster.style = "font-size: 0.8rem; color: #eeb13e;";
     tipPoster.innerHTML =
       "Consejo: si un mod dice que fallo al cargar, prueba a actualizar la lista.<br>" +
       "Los .jar de Forge/Fabric de Java real no funcionan en el navegador; los .jar" +
@@ -49,7 +49,7 @@ function displayGui() {
     var table = document.createElement("table");
     table.style = "table-layout: fixed; width: 100%";
     var headerRow = document.createElement("tr");
-    headerRow.style = "background: rgb(50,50,50);";
+    headerRow.style = "background: rgb(22,32,44);";
     var urlBox = document.createElement("th");
     urlBox.style = "text-align: center;";
     urlBox.innerHTML = "Mod (URL o archivo)";
@@ -107,17 +107,17 @@ function displayGui() {
       })(url);
       switch (statusBox.innerHTML) {
         case "CARGADO":
-          statusBox.style = "background-color: green; text-align: center;";
+          statusBox.style = "background-color: #2d7a38; text-align: center;";
           break;
         case "FALLO":
-          statusBox.style = "background-color: dimgrey; text-align: center;";
+          statusBox.style = "background-color: #3a3f47; text-align: center;";
           break;
         default:
           break;
       }
       var binBtn = document.createElement("button");
       binBtn.style =
-        "background: transparent; text-align: center; color: yellow; cursor: pointer; font-family: 'Minecraftia', sans-serif; text-decoration: underline; border: 0; margin-left: 1rem; font-size: 1rem;";
+        "background: transparent; text-align: center; color: #eeb13e; cursor: pointer; font-family: 'Minecraftia', sans-serif; text-decoration: underline; border: 0; margin-left: 1rem; font-size: 1rem;";
       binBtn.innerHTML = "[X]";
       binBtn.addEventListener("click", () => {
         if (!window.confirm("Eliminar este mod?") || Mods.indexOf(url) === -1) {
@@ -137,7 +137,7 @@ function displayGui() {
 
     var addBtn = document.createElement("button");
     addBtn.style =
-      "background: transparent; text-align: center; color: yellow; cursor: pointer; font-family: 'Minecraftia', sans-serif; text-decoration: underline; border: 0; margin-right: 1rem;  font-size: 1rem;";
+      "background: transparent; text-align: center; color: #eeb13e; cursor: pointer; font-family: 'Minecraftia', sans-serif; text-decoration: underline; border: 0; margin-right: 1rem;  font-size: 1rem;";
     addBtn.innerHTML = "Anadir nuevo (URL o .jar)";
     addBtn.addEventListener("click", () => {
       var newMod = window.prompt("URL del mod (.js o .jar):", "https://ejemplo.com/mi-mod.js");
@@ -183,7 +183,7 @@ function displayGui() {
 
     var uploadBtn = document.createElement("button");
     uploadBtn.style =
-      "background: transparent; text-align: center; color: yellow; cursor: pointer; font-family: 'Minecraftia', sans-serif; text-decoration: underline; border: 0;  font-size: 1rem;";
+      "background: transparent; text-align: center; color: #eeb13e; cursor: pointer; font-family: 'Minecraftia', sans-serif; text-decoration: underline; border: 0;  font-size: 1rem;";
     uploadBtn.innerHTML = "Subir archivo (.js o .jar)...";
     uploadBtn.addEventListener("click", function uploadBtnListener() {
       var filePicker = document.createElement("input");
@@ -226,7 +226,7 @@ function displayGui() {
       this.remove();
     });
     notice.style =
-      "color: yellow; display: block; margin-top: 2rem; width: 0; white-space: nowrap;";
+      "color: #eeb13e; display: block; margin-top: 2rem; width: 0; white-space: nowrap;";
     container.appendChild(notice);
     ModAPI.events.callEvent("gui", {});
     document.body.appendChild(container);

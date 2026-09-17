@@ -48,7 +48,7 @@
         if (avisoModsMostrado) return;
         avisoModsMostrado = true;
         var total = document.querySelectorAll("script[data-isMod]").length;
-        toast("Sistema de mods listo (" + total + " mods cargados). " +
+        toast("Sistema de mods de JEFFCRAFT listo (" + total + " mods cargados). " +
               "Usa el boton Mods del menu para anadir mas.", 8);
       });
 
@@ -61,7 +61,7 @@
           var hayMundo = !!mc.$theWorld;
           if (hayMundo && !dentroDeMundo) {
             dentroDeMundo = true;
-            toast("Bienvenido! Que disfrutes tu partida.", 5);
+            toast("Bienvenido a JEFFCRAFT! Que disfrutes tu partida.", 5);
           } else if (!hayMundo && dentroDeMundo) {
             dentroDeMundo = false; // saliste al menu principal
           }

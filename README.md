@@ -1,6 +1,6 @@
-# Minecraft 1.8.8 con soporte de Mods (EaglercraftX + EaglerForge)
+# JEFFCRAFT 1.8.8 con soporte de Mods (EaglercraftX + EaglerForge)
 
-Minecraft Java Edition 1.8.8 jugable en Chromebook, Mac y Windows, ahora con
+JEFFCRAFT: Minecraft Java Edition 1.8.8 (modificado visualmente) jugable en Chromebook, Mac y Windows, ahora con
 **soporte de mods en JavaScript y de mods escritos en Java REAL**
 (compilados con javac + TeaVM), igual que se le instalan mods al Java normal.
 

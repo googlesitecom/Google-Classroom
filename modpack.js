@@ -463,8 +463,8 @@
       "font-family:sans-serif;color:#e0e0e0;";
     var caja = document.createElement("div");
     caja.style.cssText =
-      "max-width:520px;width:90%;background:#2a2a2a;border:2px solid #555;" +
-      "border-radius:6px;padding:24px 28px;box-shadow:0 0 30px #000;";
+      "max-width:520px;width:90%;background:#101720;border:2px solid #2a3a4d;" +
+      "border-radius:6px;padding:24px 28px;box-shadow:0 0 0 2px #060a0e, 0 18px 50px rgba(0,0,0,0.6);";
     panel.appendChild(caja);
     document.body.appendChild(panel);
     return { panel: panel, caja: caja };
@@ -475,11 +475,11 @@
     b.textContent = texto;
     b.style.cssText =
       "display:block;width:100%;margin-top:14px;padding:12px 10px;font-size:16px;" +
-      "color:#e0e0e0;background:#6e6e6e;border:2px solid #000;" +
-      "box-shadow:inset 2px 2px 0 #9c9c9c, inset -2px -2px 0 #4a4a4a;" +
-      "cursor:pointer;text-shadow:2px 2px 0 #3f3f3f;";
-    b.addEventListener("mouseenter", function () { b.style.background = "#7f8cff22"; b.style.background = "#8a8a8a"; });
-    b.addEventListener("mouseleave", function () { b.style.background = "#6e6e6e"; });
+      "color:#eafff0;background:#2d7a38;border:2px solid #0c2412;" +
+      "box-shadow:inset 2px 2px 0 #4fc058, inset -2px -2px 0 #1d5526;" +
+      "cursor:pointer;text-shadow:2px 2px 0 rgba(0,0,0,0.55);";
+    b.addEventListener("mouseenter", function () { b.style.background = "#37913f"; });
+    b.addEventListener("mouseleave", function () { b.style.background = "#2d7a38"; });
     return b;
   }
 
@@ -538,6 +538,15 @@
 
         function pintar(intentando, mensaje) {
           caja.innerHTML = "";
+          var marca = document.createElement("div");
+          marca.style.cssText =
+            "font-family:'Courier New',monospace;font-weight:bold;font-size:20px;" +
+            "letter-spacing:2px;margin-bottom:10px;" +
+            "text-shadow:2px 2px 0 #06110a;";
+          marca.innerHTML =
+            "<span style='color:#4fc058'>JEFF</span><span style='color:#eeb13e'>CRAFT</span>";
+          caja.appendChild(marca);
+
           var titulo = document.createElement("h2");
           titulo.textContent = "Mods requeridos";
           titulo.style.cssText = "margin:0 0 6px 0;color:#fff;font-size:22px;text-shadow:0 0 6px #000;";
