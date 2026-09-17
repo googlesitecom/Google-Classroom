@@ -1,7 +1,8 @@
 # Minecraft 1.8.8 con soporte de Mods (EaglercraftX + EaglerForge)
 
 Minecraft Java Edition 1.8.8 jugable en Chromebook, Mac y Windows, ahora con
-**soporte de mods en JavaScript**, igual que se le instalan mods al Java normal.
+**soporte de mods en JavaScript y de mods escritos en Java REAL**
+(compilados con javac + TeaVM), igual que se le instalan mods al Java normal.
 
 El multijugador fue posible gracias a lax1dude y ayunami2000.
 El sistema de mods (EaglerForge) fue creado por ZXMushroom63, radmanplays y la
@@ -35,14 +36,20 @@ directamente desde el disco.
 
 ### Sobre los mods .jar
 
-- Los `.jar` son archivos ZIP: el gestor abre el `.jar`, busca el mod `.js` que
-  lleva dentro (con preferencia a `mod.js`) y lo instala.
-- Los `.jar` de **Java real** (los de Forge, que contienen archivos `.class`)
-  **NO funcionan** en la version del navegador, porque el juego esta compilado
-  a JavaScript y no hay maquina virtual de Java. Si intentas subir uno, el
-  gestor te avisara con un mensaje claro.
-- Para convertir un mod de Java real tendrias que reescribirlo en JavaScript
-  usando la ModAPI (ver mas abajo).
+Hay tres tipos de `.jar`, y el gestor los maneja asi:
+
+| Tipo de .jar | Que pasa |
+| --- | --- |
+| **Compilado desde Java real con TeaVM** (como `mods/java-real.jar`) | Se abre, se detecta el marcador `Mod-Type: java-teavm` y se instala como **"Mod Java real"**. Funciona al 100%. |
+| **Que trae un mod `.js` dentro** (prefiere `mod.js`) | Se abre el ZIP y se instala el `.js` de dentro. Funciona. |
+| **De Forge / CurseForge / Fabric** (contiene `.class`) | El juego lo LEE (nombre, version, autor via `mcmod.info` / `mods.toml` / `fabric.mod.json`) y abre un dialogo que explica por que no puede correr y que alternativas hay. No se instala. |
+
+Los `.jar` de Forge **no pueden ejecutarse en ningun navegador** (ni en este
+sitio ni en ninguna version de Eaglercraft): vienen compilados como bytecode
+para la maquina virtual de Java (JVM) del Minecraft de escritorio, y el
+navegador no tiene una JVM. Es un limite fisico, no un error del mod. La
+forma REAL de usar Java aqui es compilar con **TeaVM**: mira la siguiente
+seccion.
 
 ### Paquete de mods obligatorio (para todos los jugadores)
 
@@ -51,11 +58,12 @@ Los archivos del paquete que debe descargar todo jugador nuevo estan en
 
 ```json
 {
-  "version": 1,
+  "version": 2,
   "nombre": "Paquete de mods del sitio",
   "mods": [
     { "archivo": "fps.js", "nombre": "Contador de FPS" },
-    { "archivo": "bienvenida.js", "nombre": "Mensajes de bienvenida" }
+    { "archivo": "bienvenida.js", "nombre": "Mensajes de bienvenida" },
+    { "archivo": "java-real.jar", "nombre": "Java Real (TeaVM) - mod compilado 100% desde Java" }
   ]
 }
 ```
@@ -67,15 +75,38 @@ Para agregar un mod al paquete de todos los jugadores:
 3. **Sube el numero `version`** (por ejemplo de `1` a `2`): asi los jugadores que
    ya entraron antes veran de nuevo el panel y descargaran la actualizacion.
 
-Este repo ya incluye 2 mods de ejemplo en el paquete (los puedes borrar de
+Este repo ya incluye 3 mods de ejemplo en el paquete (los puedes borrar de
 `mods/mods.json` si no los quieres obligatorios):
 
 | Mod | Que hace |
 | --- | --- |
 | `mods/fps.js` | Contador de FPS en la esquina (pulsa **F6** para ocultarlo) |
 | `mods/bienvenida.js` | Avisos al cargar los mods y bienvenida al entrar a un mundo |
+| `mods/java-real.jar` | **Mod escrito y compilado 100% en Java** (javac + TeaVM). Cuenta tics con un `int` de Java, y **F8** muestra su estado (tics, avisos, tiempo activo) |
 
-## Como escribir tus propios mods
+## Como escribir mods en Java REAL (TeaVM)
+
+SI se pueden usar mods escritos en Java de verdad: se compilan con `javac`
+y **TeaVM** los convierte a JavaScript para el navegador (el mismo mecanismo
+de EaglerForge). El repo incluye una **plantilla lista para usar** en
+`tools/plantilla-mod-java/`:
+
+1. Edita `tools/plantilla-mod-java/src/main/java/modjava/ModJavaReal.java`
+   (es Java normal; se comunica con el juego mediante anotaciones `@JSBody`).
+2. Compila con `mvn package` (necesitas JDK 17+ y Maven).
+3. Empaqueta con `python3 empaquetar.py` -> obtienes `mi-mod-java.jar`.
+4. Subelo al juego con **"Subir archivo (.js o .jar)..."**, o ponlo en
+   `mods/` y agregalo a `mods/mods.json` para que lo descarguen todos.
+
+Las instrucciones completas paso a paso estan en
+`tools/plantilla-mod-java/COMO-COMPILAR.md`.
+
+Eso si: los `.jar` de Forge/CurseForge ya compilados NO se pueden
+"recompilar" ni ejecutar aqui (usan las clases de Forge, que solo existen
+en el Minecraft de escritorio). Los mods Java para este juego se escriben
+contra la ModAPI, como en la plantilla.
+
+## Como escribir tus propios mods (.js)
 
 Un mod es simplemente un archivo `.js` que usa la `ModAPI` de EaglerForge.
 Ejemplo minimo (`mi-mod.js`):
@@ -121,9 +152,14 @@ ModAPI.js      Nucleo de la API de mods (eventos)
 ModLoader.js   Cargador de mods (URLs, archivos subidos y mods guardados)
 ModGUI.js      Gestor de Mods (interfaz en espanol, sube .js y .jar)
 modpack.js     Paquete obligatorio + almacen de mods + lector de .jar
+               (detecta mods de Forge y abre un dialogo explicativo)
 assets.epk     Recursos del juego (texturas, sonidos)
 lang/          Traducciones del juego (incluye es_MX, es_ES, es_AR, etc.)
 mods/          Mods del paquete + mods.json (manifiesto)
+               (incluye java-real.jar: mod compilado desde Java real)
+tools/
+  plantilla-mod-java/   Plantilla Maven+TeaVM para compilar tus propios
+                        mods Java (ver COMO-COMPILAR.md)
 ```
 
 ## Notas

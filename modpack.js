@@ -3,8 +3,11 @@
 // 1) ModStore: guarda el codigo de los mods en localStorage ("ml::ModData")
 //    para que los mods instalados (de .js o .jar) duren entre sesiones.
 // 2) extraerJsDeJar: abre archivos .jar (son ZIP) y extrae el mod .js de dentro.
-//    Nota: los .jar de Java real (con .class) NO pueden ejecutarse en el
-//    navegador; solo funcionan los .jar que traen un mod .js dentro.
+//    Los .jar generados desde Java real con TeaVM (marcador Mod-Type:
+//    java-teavm) se instalan como tipo "java". Los .jar de Forge/Fabric
+//    (con .class) no pueden ejecutarse en el navegador: se lee su
+//    informacion (mcmod.info, mods.toml, fabric.mod.json) y se muestra un
+//    dialogo explicando por que y que alternativas hay.
 // 3) ModPackGate: todos los jugadores nuevos deben descargar los mods del
 //    sitio (mods/mods.json) antes de poder jugar.
 
@@ -12,7 +15,7 @@
 
   // ------------------------------------------------------------------
   // ModStore: almacen de mods en localStorage
-  // ml::ModData = { "<clave>": { n: nombre, t: "js"|"jar", c: codigo } }
+  // ml::ModData = { "<clave>": { n: nombre, t: "js"|"jar"|"java", c: codigo } }
   // ------------------------------------------------------------------
 
   function cargarDatos() {
@@ -84,8 +87,122 @@
     return new Uint8Array(buf);
   }
 
+  // Busca una entrada del ZIP por su nombre exacto
+  function buscarEntrada(entradas, nombre) {
+    for (var i = 0; i < entradas.length; i++) {
+      if (entradas[i].nombre === nombre) return entradas[i];
+    }
+    return null;
+  }
+
+  // Lee los datos (descomprimidos) de una entrada del ZIP
+  async function leerDatosEntrada(d, ent) {
+    var lo = ent.lho;
+    if (lo + 30 > d.length || u32(d, lo) !== 0x04034b50) return null;
+    var lfnLen = u16(d, lo + 26);
+    var lexLen = u16(d, lo + 28);
+    var ini = lo + 30 + lfnLen + lexLen;
+    var datos = d.slice(ini, ini + ent.cTam);
+    if (ent.metodo === 0) return datos;
+    if (ent.metodo === 8) return await inflateRaw(datos);
+    return null;
+  }
+
+  // Lee una entrada del ZIP como texto
+  async function leerTextoEntrada(entradas, d, nombre) {
+    var ent = buscarEntrada(entradas, nombre);
+    if (!ent) return null;
+    var datos = await leerDatosEntrada(d, ent);
+    if (!datos) return null;
+    try {
+      return new TextDecoder().decode(datos);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Extrae un valor de cadena de un JSON posiblemente malformado
+  function extraerJsonCadena(txt, clave) {
+    var m = txt.match(new RegExp('"' + clave + '"\\s*:\\s*"([^"\\\\]*(?:\\\\.[^"\\\\]*)*)"'));
+    return m ? m[1] : "";
+  }
+
+  // Extrae un valor clave = "texto" de un TOML (mods.toml de Forge)
+  function extraerTomlCadena(txt, clave) {
+    var m = txt.match(new RegExp("^\\s*" + clave + "\\s*=\\s*[\"']([^\"'\\r\\n]+)[\"']", "m"));
+    return m ? m[1] : "";
+  }
+
+  // Lee los metadatos de un mod de Java real (Forge / Fabric)
+  async function leerMetaJava(entradas, d) {
+    var meta = { plataforma: "", nombre: "", version: "", mcVersion: "", descripcion: "", autor: "" };
+
+    // Forge 1.7 - 1.12: mcmod.info (JSON)
+    var txt = await leerTextoEntrada(entradas, d, "mcmod.info");
+    if (txt) {
+      meta.plataforma = "Forge";
+      txt = txt.replace(/^\uFEFF/, "").trim();
+      try {
+        var o = JSON.parse(txt);
+        if (Array.isArray(o)) o = o[0] || {};
+        meta.nombre = String(o.name || o.modid || "");
+        meta.version = String(o.version || "");
+        meta.mcVersion = String(o.mcversion || "");
+        meta.descripcion = String(o.descriptionText || o.description || "").replace(/[\\][nrt]/g, " ").slice(0, 160);
+        var autores = o.authorList || o.authors || [];
+        if (Array.isArray(autores) && autores.length) meta.autor = autores.slice(0, 3).join(", ");
+      } catch (e) {
+        // mcmod.info a veces trae comas de mas: rescate con expresiones
+        meta.nombre = extraerJsonCadena(txt, "name") || extraerJsonCadena(txt, "modid");
+        meta.version = extraerJsonCadena(txt, "version");
+        meta.mcVersion = extraerJsonCadena(txt, "mcversion");
+      }
+    }
+
+    // Forge 1.13+: META-INF/mods.toml
+    if (!meta.nombre) {
+      txt = await leerTextoEntrada(entradas, d, "META-INF/mods.toml");
+      if (txt) {
+        meta.plataforma = "Forge";
+        meta.nombre = extraerTomlCadena(txt, "displayName") || extraerTomlCadena(txt, "modId");
+        meta.version = extraerTomlCadena(txt, "displayVersion") || extraerTomlCadena(txt, "version");
+        // Formato real: [[dependencies.X]] con modId="minecraft" + versionRange="..."
+        var mcm = txt.match(/modId\s*=\s*["']minecraft["'][\s\S]{0,200}?versionRange\s*=\s*["']([^"']+)["']/i);
+        if (mcm) meta.mcVersion = mcm[1].replace(/[\[\]()]/g, "");
+        if (!meta.mcVersion) {
+          mcm = txt.match(/minecraft\s*=\s*\[?\s*"([^"\n]+)"\s*\]?/);
+          if (mcm) meta.mcVersion = mcm[1];
+        }
+      }
+    }
+
+    // Fabric: fabric.mod.json
+    if (!meta.nombre) {
+      txt = await leerTextoEntrada(entradas, d, "fabric.mod.json");
+      if (txt) {
+        meta.plataforma = "Fabric";
+        try {
+          var f = JSON.parse(txt.replace(/^\uFEFF/, "").trim());
+          meta.nombre = String(f.name || f.id || "");
+          meta.version = String(f.version || "");
+          if (f.depends && f.depends.minecraft) meta.mcVersion = String(f.depends.minecraft);
+          meta.descripcion = String(f.description || "").slice(0, 160);
+          if (Array.isArray(f.authors) && f.authors.length) {
+            meta.autor = f.authors.slice(0, 3).map(function (a) {
+              return typeof a === "string" ? a : (a && a.name) || "";
+            }).filter(Boolean).join(", ");
+          }
+        } catch (e) {}
+      }
+    }
+
+    return meta;
+  }
+
   // Abre un .jar y extrae el mod .js que contiene.
-  // Devuelve { ok:true, nombre, archivoInterno, codigo } o { ok:false, error }
+  // Devuelve { ok:true, nombre, archivoInterno, codigo, tipo } o
+  // { ok:false, error } y, si es un mod de Java real (Forge/Fabric),
+  // { ok:false, java:true, meta, error }.
   async function extraerJsDeJar(arrayBuffer, nombreJar) {
     var d = new Uint8Array(arrayBuffer);
 
@@ -131,11 +248,17 @@
     });
     if (!js.length) {
       if (hayClass) {
+        // Mod de Java real (Forge/Fabric): leer su informacion y explicar
+        var meta = await leerMetaJava(entradas, d);
         return {
           ok: false,
-          error: "Ese .jar es un mod de Java real (contiene archivos .class). " +
-            "Los mods de Java no funcionan en la version del navegador. " +
-            "Usa un mod .js o un .jar que traiga el mod .js dentro."
+          java: true,
+          meta: meta,
+          error: "Ese .jar es un mod de Java real" +
+            (meta.plataforma ? " de " + meta.plataforma : "") +
+            (meta.nombre ? " (" + meta.nombre + (meta.version ? " " + meta.version : "") + ")" : "") +
+            ". Los mods compilados para el Minecraft de escritorio no pueden" +
+            " ejecutarse en el navegador."
         };
       }
       return { ok: false, error: "El .jar no contiene ningun mod (.js) en su interior." };
@@ -153,26 +276,27 @@
     var ent = js[0];
 
     // 4) Leer los datos desde el header local
-    var lo = ent.lho;
-    if (lo + 30 > d.length || u32(d, lo) !== 0x04034b50) {
-      return { ok: false, error: "El .jar esta corrupto (entrada invalida)." };
+    var datos = await leerDatosEntrada(d, ent);
+    if (!datos) {
+      return { ok: false, error: "El .jar esta corrupto o usa una compresion no soportada." };
     }
-    var lfnLen = u16(d, lo + 26);
-    var lexLen = u16(d, lo + 28);
-    var ini = lo + 30 + lfnLen + lexLen;
-    var datos = d.slice(ini, ini + ent.cTam);
     var texto;
-    if (ent.metodo === 0) {
+    try {
       texto = new TextDecoder().decode(datos);
-    } else if (ent.metodo === 8) {
-      var inflado = await inflateRaw(datos);
-      texto = new TextDecoder().decode(inflado);
-    } else {
-      return { ok: false, error: "El .jar usa una compresion no soportada (metodo " + ent.metodo + ")." };
+    } catch (e) {
+      return { ok: false, error: "El .jar contiene datos que no se pudieron decodificar." };
     }
 
     var mostrar = String(nombreJar || ent.nombre).replace(/\.(jar|zip)$/i, "");
-    return { ok: true, nombre: mostrar, archivoInterno: ent.nombre, codigo: texto, tipo: "jar" };
+    // Los .jar compilados desde Java real con TeaVM llevan este marcador
+    var esJavaTeaVM = texto.indexOf("Mod-Type: java-teavm") !== -1;
+    return {
+      ok: true,
+      nombre: mostrar,
+      archivoInterno: ent.nombre,
+      codigo: texto,
+      tipo: esJavaTeaVM ? "java" : "jar"
+    };
   }
   window.extraerJsDeJar = extraerJsDeJar;
 
@@ -183,9 +307,13 @@
     var codigo, tipo;
     if (/\.(jar|zip)$/i.test(nombre)) {
       var r = await extraerJsDeJar(arrayBuffer, nombre);
-      if (!r.ok) throw new Error(r.error);
+      if (!r.ok) {
+        var err = new Error(r.error);
+        if (r.java) err.modJava = r.meta; // info para el dialogo explicativo
+        throw err;
+      }
       codigo = r.codigo;
-      tipo = "jar";
+      tipo = r.tipo || "jar";
     } else {
       codigo = new TextDecoder().decode(arrayBuffer);
       tipo = "js";
@@ -197,16 +325,107 @@
   window.instalarArchivo = instalarArchivo;
 
   // ------------------------------------------------------------------
+  // Dialogo: cuando suben un mod de Java real (Forge/Fabric) explica
+  // por que no puede correr en el navegador y que alternativas hay.
+  // ------------------------------------------------------------------
+
+  window.mostrarDialogoModJava = function (meta) {
+    meta = meta || {};
+    var previo = document.getElementById("dialogo_mod_java");
+    if (previo) previo.remove();
+
+    var panel = document.createElement("div");
+    panel.id = "dialogo_mod_java";
+    panel.style.cssText =
+      "position:fixed;top:0;left:0;width:100%;height:100%;z-index:1002;" +
+      "background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;" +
+      "font-family:sans-serif;color:#e0e0e0;";
+
+    var caja = document.createElement("div");
+    caja.style.cssText =
+      "max-width:600px;width:92%;max-height:86vh;overflow-y:auto;background:#2a2a2a;" +
+      "border:2px solid #6e6e6e;border-radius:6px;padding:22px 26px;box-shadow:0 0 30px #000;";
+
+    function titulo(texto, tam, color) {
+      var e = document.createElement("h3");
+      e.textContent = texto;
+      e.style.cssText = "margin:14px 0 8px 0;font-size:" + (tam || 15) + "px;color:" + (color || "#fff") + ";";
+      return e;
+    }
+    function parrafo(texto, color, tam) {
+      var e = document.createElement("p");
+      e.textContent = texto;
+      e.style.cssText = "margin:8px 0;font-size:" + (tam || 14) + "px;line-height:1.45;color:" + (color || "#ccc") + ";";
+      return e;
+    }
+    function punto(texto) {
+      var e = document.createElement("li");
+      e.textContent = texto;
+      e.style.cssText = "margin:5px 0;font-size:13.5px;line-height:1.45;color:#ccc;";
+      return e;
+    }
+
+    var t1 = titulo("Mod de Java real detectado", 20, "#ffd966");
+    t1.style.marginTop = "0";
+    caja.appendChild(t1);
+
+    if (meta.nombre || meta.plataforma) {
+      var info = document.createElement("p");
+      info.style.cssText =
+        "margin:6px 0 10px 0;padding:8px 12px;background:#222;" +
+        "border-left:4px solid #ffd966;font-size:14px;color:#fff;";
+      var partes = [];
+      if (meta.nombre) partes.push(meta.version ? meta.nombre + " " + meta.version : meta.nombre);
+      if (meta.plataforma) partes.push("plataforma: " + meta.plataforma);
+      if (meta.mcVersion) partes.push("Minecraft " + meta.mcVersion);
+      info.textContent = partes.join("  |  ");
+      caja.appendChild(info);
+      if (meta.descripcion) caja.appendChild(parrafo(meta.descripcion, "#999", 12.5));
+      if (meta.autor) caja.appendChild(parrafo("Autor(es): " + meta.autor, "#888", 12));
+    }
+
+    caja.appendChild(titulo("Por que no puede ejecutarse aqui", 15, "#ff9a76"));
+    var ul = document.createElement("ul");
+    ul.style.cssText = "margin:4px 0 10px 0;padding-left:20px;";
+    ul.appendChild(punto("Los mods .jar de Forge/Fabric vienen compilados como bytecode para la maquina virtual de Java (JVM) del Minecraft de escritorio."));
+    ul.appendChild(punto("El navegador no tiene una JVM dentro y este juego esta compilado a JavaScript: el mod no tiene donde ejecutarse."));
+    ul.appendChild(punto("Le pasa a TODAS las versiones de Minecraft en navegador (Eaglercraft). No es culpa tuya ni del mod; desconfia de los videos que digan lo contrario."));
+    caja.appendChild(ul);
+
+    caja.appendChild(titulo("Lo que SI puedes hacer", 15, "#7fe07f"));
+    var ul2 = document.createElement("ul");
+    ul2.style.cssText = "margin:4px 0 10px 0;padding-left:20px;";
+    ul2.appendChild(punto("Escribir mods en Java DE VERDAD y compilarlos con la plantilla TeaVM de este sitio (tools/plantilla-mod-java del repositorio): esos .jar SI corren en el navegador."));
+    ul2.appendChild(punto("Este sitio ya trae un ejemplo funcionando: el mod \"Java Real (TeaVM)\" (pulsa F8 dentro del juego) fue compilado 100% desde codigo Java."));
+    ul2.appendChild(punto("Buscar la version .js del mod que quieres: muchos mods populares tienen version para Eaglercraft."));
+    ul2.appendChild(punto("Subir .jar que traigan el mod .js dentro (como los que genera la plantilla)."));
+    caja.appendChild(ul2);
+
+    var btn = botonMC("Entendido");
+    btn.addEventListener("click", function () {
+      if (panel.parentNode) panel.parentNode.removeChild(panel);
+    });
+    caja.appendChild(btn);
+
+    panel.appendChild(caja);
+    panel.addEventListener("click", function (ev) {
+      if (ev.target === panel && panel.parentNode) panel.parentNode.removeChild(panel);
+    });
+    document.body.appendChild(panel);
+  };
+
+  // ------------------------------------------------------------------
   // ModPackGate: descarga OBLIGATORIA de mods para cada jugador nuevo
   // ------------------------------------------------------------------
 
   var MANIFIESTO_URL = "mods/mods.json";
   var MANIFIESTO_POR_DEFECTO = {
-    version: 1,
+    version: 2,
     nombre: "Paquete de mods del sitio",
     mods: [
       { archivo: "fps.js", nombre: "Contador de FPS" },
-      { archivo: "bienvenida.js", nombre: "Mensajes de bienvenida" }
+      { archivo: "bienvenida.js", nombre: "Mensajes de bienvenida" },
+      { archivo: "java-real.jar", nombre: "Java Real (TeaVM) - mod compilado desde Java" }
     ]
   };
 

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.googlesites</groupId>
+  <artifactId>mod-java-real</artifactId>
+  <version>1.0.0</version>
+  <packaging>jar</packaging>
+
+  <name>Mod Java Real (TeaVM) para EaglercraftX</name>
+  <description>
+    Mod escrito 100% en Java, compilado con javac y convertido a JavaScript
+    con TeaVM para ejecutarse en la version del navegador (EaglercraftX).
+  </description>
+
+  <properties>
+    <maven.compiler.release>11</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <teavm.version>0.10.2</teavm.version>
+  </properties>
+
+  <dependencies>
+    <!-- API de JavaScript de TeaVM (anotaciones @JSBody, @JSFunctor) -->
+    <dependency>
+      <groupId>org.teavm</groupId>
+      <artifactId>teavm-jso-apis</artifactId>
+      <version>${teavm.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <!-- Libreria estandar de Java para TeaVM (java.lang, System, etc.) -->
+    <dependency>
+      <groupId>org.teavm</groupId>
+      <artifactId>teavm-classlib</artifactId>
+      <version>${teavm.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- Compila el Java y lo convierte a JavaScript -->
+      <plugin>
+        <groupId>org.teavm</groupId>
+        <artifactId>teavm-maven-plugin</artifactId>
+        <version>${teavm.version}</version>
+        <executions>
+          <execution>
+            <id>compilar-a-javascript</id>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <phase>prepare-package</phase>
+            <configuration>
+              <targetType>JAVASCRIPT</targetType>
+              <mainClass>modjava.ModJavaReal</mainClass>
+              <targetDirectory>${project.build.directory}/teavm</targetDirectory>
+              <minifying>true</minifying>
+              <debugInformation>false</debugInformation>
+              <sourceMapsGenerated>false</sourceMapsGenerated>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

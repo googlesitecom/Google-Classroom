@@ -41,7 +41,9 @@ function displayGui() {
     var tipPoster = document.createElement("p");
     tipPoster.style = "font-size: 0.8rem; color: yellow;";
     tipPoster.innerHTML =
-      "Consejo: si un mod dice que fallo al cargar, prueba a actualizar la lista.";
+      "Consejo: si un mod dice que fallo al cargar, prueba a actualizar la lista.<br>" +
+      "Los .jar de Forge/Fabric de Java real no funcionan en el navegador; los .jar" +
+      " compilados con TeaVM (como el mod Java Real) si.";
     container.appendChild(tipPoster);
 
     var table = document.createElement("table");
@@ -74,7 +76,7 @@ function displayGui() {
       } else if (typeof url === "string" && url.indexOf("local:") === 0 && window.ModStore) {
         var v = window.ModStore.get(url);
         if (v) {
-          prettyUrl = v.n + (v.t === "jar" ? "  (Mod .jar instalado)" : "  (Mod .js instalado)");
+          prettyUrl = v.n + (v.t === "java" ? "  (Mod Java real, TeaVM)" : v.t === "jar" ? "  (Mod .jar instalado)" : "  (Mod .js instalado)");
         } else {
           prettyUrl = url + "  (ya no esta guardado)";
         }
@@ -161,7 +163,11 @@ function displayGui() {
             gui();
           })
           .catch(function (e) {
-            window.alert("No se pudo instalar el .jar: " + (e && e.message ? e.message : e));
+            if (e && e.modJava && window.mostrarDialogoModJava) {
+              window.mostrarDialogoModJava(e.modJava);
+            } else {
+              window.alert("No se pudo instalar el .jar: " + (e && e.message ? e.message : e));
+            }
           });
         return;
       }
@@ -196,7 +202,11 @@ function displayGui() {
             }
             gui();
           }).catch(function (e) {
-            window.alert("No se pudo instalar el mod: " + (e && e.message ? e.message : e));
+            if (e && e.modJava && window.mostrarDialogoModJava) {
+              window.mostrarDialogoModJava(e.modJava);
+            } else {
+              window.alert("No se pudo instalar el mod: " + (e && e.message ? e.message : e));
+            }
             console.error(e);
           });
         }
