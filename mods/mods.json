@@ -1,10 +1,11 @@
 {
-  "version": 2,
+  "version": 3,
   "nombre": "Paquete de mods del sitio",
   "descripcion": "Mods que deben descargar todos los jugadores al entrar por primera vez (o al actualizar la version).",
   "mods": [
     { "archivo": "fps.js", "nombre": "Contador de FPS" },
     { "archivo": "bienvenida.js", "nombre": "Mensajes de bienvenida" },
+    { "archivo": "mando.js", "nombre": "Mando de Xbox - control completo" },
     { "archivo": "java-real.jar", "nombre": "Java Real (TeaVM) - mod compilado 100% desde Java" }
   ]
 }

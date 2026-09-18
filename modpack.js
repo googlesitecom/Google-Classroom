@@ -32,9 +32,9 @@
 
   window.ModStore = {
     // Guarda un mod y devuelve la referencia "local:<clave>"
-    put: function (clave, nombre, codigo, tipo) {
+    put: function (clave, nombre, codigo, tipo, version) {
       var d = cargarDatos();
-      d[clave] = { n: nombre, t: tipo || "js", c: codigo };
+      d[clave] = { n: nombre, t: tipo || "js", c: codigo, v: version || 0 };
       guardarDatos(d); // puede lanzar error si se llena localStorage
       return "local:" + clave;
     },
@@ -43,6 +43,12 @@
       if (typeof ref !== "string" || ref.indexOf("local:") !== 0) return null;
       var d = cargarDatos();
       return d[ref.slice(6)] || null;
+    },
+
+    // Version almacenada de un mod local (0 si no la trae)
+    versionDe: function (clave) {
+      var v = this.get("local:" + clave);
+      return v && typeof v.v !== "undefined" ? v.v : 0;
     },
 
     // Convierte "local:clave" en una URL data: lista para ejecutar
@@ -300,9 +306,71 @@
   }
   window.extraerJsDeJar = extraerJsDeJar;
 
+  // ------------------------------------------------------------------
+  // Auto-actualizacion silenciosa de los mods de la tienda:
+  // al arrancar se compara la version instalada de cada mod con la del
+  // catalogo (mods/tienda.json). Si cambio, se vuelve a descargar y se
+  // sobreescribe el codigo guardado. El progreso del jugador NUNCA se toca.
+  // ------------------------------------------------------------------
+
+  async function actualizarModsTienda() {
+    var catalogo = null;
+    try {
+      var r = await fetch("mods/tienda.json", { cache: "no-store" });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      catalogo = await r.json();
+    } catch (e) {
+      console.warn("No se pudo leer la tienda para actualizar mods:", e);
+      return 0;
+    }
+    if (!catalogo || !Array.isArray(catalogo.mods)) return 0;
+
+    var lista = obtenerLista();
+    var actualizados = 0;
+
+    for (var i = 0; i < catalogo.mods.length; i++) {
+      var art = catalogo.mods[i];
+      var clave = art.clave || window.ModStore.sanitize(art.archivo);
+      var ref = "local:" + clave;
+      var instaladoLocal = lista.indexOf(ref) !== -1;
+      // migracion: entradas viejas por URL "mods/archivo"
+      var urlVieja = "mods/" + art.archivo;
+      var instaladoURL = lista.some(function (x) {
+        return typeof x === "string" && x.indexOf(urlVieja) !== -1;
+      });
+      if (!instaladoLocal && !instaladoURL) continue;   // no esta instalado
+
+      var versionInstalada = window.ModStore.versionDe(clave);
+      var versionNueva = art.version || 0;
+      if (instaladoLocal && String(versionInstalada) === String(versionNueva)) {
+        continue; // ya esta al dia
+      }
+      try {
+        var r2 = await fetch(urlVieja, { cache: "no-store" });
+        if (!r2.ok) throw new Error("HTTP " + r2.status);
+        var buf = await r2.arrayBuffer();
+        await window.instalarArchivo(art.archivo, buf, art.nombre || null, versionNueva);
+        // quitar entrada URL vieja si la habia y asegurar la local
+        lista = lista.filter(function (x) {
+          return !(typeof x === "string" && x.indexOf(urlVieja) !== -1);
+        });
+        if (lista.indexOf(ref) === -1) lista.push(ref);
+        actualizados++;
+        console.log("JEFFCRAFT: mod actualizado -> " + (art.nombre || art.archivo) +
+          " (v" + versionNueva + ")");
+      } catch (e) {
+        console.warn("No se pudo actualizar el mod " + art.archivo + ":", e);
+      }
+    }
+    if (actualizados > 0) {
+      guardarLista(lista);
+    }
+    return actualizados;
+  }
+
   // Instala un archivo (.js o .jar) desde su contenido ArrayBuffer.
   // Devuelve la referencia "local:clave" para la lista de mods.
-  async function instalarArchivo(nombreArchivo, arrayBuffer, nombreMostrar) {
+  async function instalarArchivo(nombreArchivo, arrayBuffer, nombreMostrar, version) {
     var nombre = String(nombreArchivo || "mod");
     var codigo, tipo;
     if (/\.(jar|zip)$/i.test(nombre)) {
@@ -320,7 +388,7 @@
     }
     var clave = window.ModStore.sanitize(nombre);
     var mostrar = nombreMostrar || nombre.replace(/\.[^.]+$/, "") || clave;
-    return window.ModStore.put(clave, mostrar, codigo, tipo);
+    return window.ModStore.put(clave, mostrar, codigo, tipo, version);
   }
   window.instalarArchivo = instalarArchivo;
 
@@ -511,6 +579,19 @@
   }
 
   window.ModPackGate = {
+    // Actualiza en silencio los mods de la tienda ya instalados cuyo
+    // version haya cambiado en el catalogo. No borra nada mas.
+    actualizarTienda: async function () {
+      try {
+        var n = await actualizarModsTienda();
+        if (n > 0) {
+          console.log("JEFFCRAFT: " + n + " mod(s) de la tienda actualizados.");
+        }
+      } catch (e) {
+        console.warn("Error actualizando la tienda:", e);
+      }
+    },
+
     // Devuelve true cuando el jugador ya tiene los mods (los descargo antes)
     // o cuando acaba de instalarlos. Muestra el panel obligatorio si faltan.
     ensure: async function () {

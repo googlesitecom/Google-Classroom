@@ -2,34 +2,78 @@
 
 JEFFCRAFT: Minecraft Java Edition 1.8.8 (modificado visualmente) jugable en Chromebook, Mac y Windows, ahora con
 **soporte de mods en JavaScript y de mods escritos en Java REAL**
-(compilados con javac + TeaVM), igual que se le instalan mods al Java normal.
+(compilados con javac + TeaVM), igual que se le instalan mods al Java normal,
+y con **soporte de control de Xbox**.
 
 El multijugador fue posible gracias a lax1dude y ayunami2000.
 El sistema de mods (EaglerForge) fue creado por ZXMushroom63, radmanplays y la
 comunidad de EaglerForge.
 
-## Tienda de Mods (nuevo)
+## Mando de Xbox (nuevo)
 
-Dentro del **Gestor de Mods** (boton "Mods" del menu) ahora hay una **Tienda de
-Mods** con juegos hechos a medida para JEFFCRAFT. Entras, eliges y pulsas
+Conecta un control de Xbox (o cualquier mando compatible) por **USB o
+Bluetooth** y pulsa cualquier boton: el mod **Mando de Xbox** (viene en el
+paquete obligatorio, no hay que instalar nada) lo detecta solo. Todos los
+controles esenciales ya estan asignados:
+
+| Control | Jugando | En menus |
+| --- | --- | --- |
+| **Palanca izquierda** | moverte (WASD) | mover el cursor |
+| **Palanca derecha** | mirar / camara | \(nada\) |
+| **Gatillo derecho (RT)** | atacar / picar | \(nada\) |
+| **Gatillo izquierdo (LT)** | usar / colocar bloques | \(nada\) |
+| **A** | saltar | clic |
+| **B** | agacharse (on/off) | atras / cerrar |
+| **X** | abrir inventario | clic (inventario) |
+| **Y** | soltar objeto | \(nada\) |
+| **LB / RB** | ranura anterior / siguiente | subir / bajar listas |
+| **Click palanca izq.** | correr | \(nada\) |
+| **Click palanca der.** | cambiar vista (F5) | \(nada\) |
+| **View (⧉)** | abrir chat (sale el teclado en pantalla) | \(nada\) |
+| **Menu (☰)** | pausa | pausa / atras |
+| **Cruceta ↑** | tabla de controles | tabla de controles |
+| **Cruceta ↓** | copiar bloque (click central) | \(nada\) |
+| **Cruceta → / ←** | teclas **R / G** (disparar / recargar de los mods) | \(nada\) |
+
+Ademas: **vibracion** al recibir dano y al disparar (mods de la tienda),
+**gatillo derecho dispara** las armas del mod Pistolas y cabalga/alienta el
+dragon, y ajustes con comandos:
+
+- `/mando sensibilidad 1-4` -> velocidad de la camara (por defecto 1)
+- `/mando invertir` -> invierte el eje Y de la camara
+- `/mando vibrar` -> prueba la vibracion
+- `/mando off` / `/mando on` -> apaga o enciende el mando
+
+> El chat del mando abre un cuadro de texto real: en Xbox y moviles aparece el
+teclado en pantalla del sistema; en PC puedes escribir normal.
+
+## Tienda de Mods
+
+Dentro del **Gestor de Mods** (boton "Mods" del menu) hay una **Tienda de
+Mods** con mods hechos a medida para JEFFCRAFT. Entras, eliges y pulsas
 **Instalar**; el mod se descarga una vez, queda guardado en tu navegador y se
-carga al instante (sin recargar la pagina).
+carga al instante (sin recargar la pagina). Cuando actualizamos un mod de la
+tienda, **se actualiza solo** la proxima vez que entras (comparamos versiones
+al arrancar).
 
 El catalogo de la tienda esta en `mods/tienda.json` y los mods de la tienda son:
 
 | Mod | Como se usa | Que hace |
 | --- | --- | --- |
-| 🔫 **Pistolas** | `/pistola` activa el modo · **R** dispara · **G** recarga | Balas reales (flechas que vuelan y dañan), HUD de municion (24 balas), sonidos de disparo y recarga, y te regala la "Pistola JEFF" |
-| 🐉 **Dragones** | `/dragon` (o `/dragon 3`) invoca · **B** lanza el aliento · `/dragon matar` los quita | Dragones de Ender reales volando sobre tu mundo (hasta 6) con bolas de fuego que explotan |
-| 👻 **Terror** | `/terror` (o tecla **V**) activa/desactiva | Noche perpetua con tormenta, ceguera que va y viene, susurros y sonidos de cueva, mensajes inquietantes en el chat y apariciones de **JEFF** a tus espaldas que te persiguen |
+| 🔫 **Pistolas v2** | `/pistola` `/rifle` `/escopeta` `/metralleta` elige arma · **R** o gatillo der. dispara · **G** recarga | 4 armas **con texturas propias** (reemplazan las azadas): Pistola semiautomatica, Rifle con mira, Escopeta de 6 perdigones y Metralleta automatica. Balas con **estela de fuego**, sonidos de disparo sintetizados, HUD con icono del arma y barra de municion, retroceso y vibracion en el mando |
+| 🐉 **Dragones v2** | `/dragon [1-4]` invoca · **/montar** cabalga (dirige mirando) · **B** o gatillo der. = aliento · **Shift** te baja · `/dragon matar` los quita | Dragones de **FUEGO** con textura propia (escamas carmesi, vientre dorado, ojos naranja brillantes) que vuelan en circulos sobre tu mundo. Puedes MONTARTE: el dragon sigue tu mirada, sube y baja con la camara y lanza bolas de fuego. Barra de jefe, rugidos y aleteos incluidos |
+| 👻 **Terror v2** | `/terror` (o tecla **V**) activa/desactiva · `/terror susto` prueba el susto | Noche perpetua con tormenta, niebla que va y viene, drone ambiental, latidos, susurros, mensajes inquietantes y **zombis con texturas de terror** (piel palida, sangre, ojos que brillan; tambien esqueletos y aranias). Si un zombi se te acerca demasiado recibes un **susto de pantalla completa** con grito y vibracion. Velo de sangre al ser herido |
 
-> **Nota:** los tres mods usan comandos del juego (como `/summon` y
-> `/playsound`). Para que funcionen al 100%, el mundo debe tener los **trucos
-> activados**. Los mundos nuevos de JEFFCRAFT ya nacen con "Permitir trucos:
-> Si"; si creaste un mundo antiguo sin trucos, el mod te avisara en pantalla.
+> **Nota:** los tres mods usan comandos del juego (como `/summon`,
+> `/particle` y `/effect`). Para que funcionen al 100%, el mundo debe tener los
+> **trucos activados**. Los mundos nuevos de JEFFCRAFT ya nacen con "Permitir
+> trucos: Si"; si creaste un mundo antiguo sin trucos, el mod te avisara en
+> pantalla.
 
 Para agregar un mod a la tienda: sube su `.js` a `mods/` y agrega su entrada en
-`mods/tienda.json` (archivo, clave, nombre, emoji, categoria y descripcion).
+`mods/tienda.json` (archivo, clave, **version**, nombre, emoji, categoria y
+descripcion). Cuando cambies el codigo del mod, sube su `version` y todos los
+jugadores que lo tengan instalado lo recibiran actualizado.
 
 ## Como jugar
 
@@ -81,11 +125,12 @@ Los archivos del paquete que debe descargar todo jugador nuevo estan en
 
 ```json
 {
-  "version": 2,
+  "version": 3,
   "nombre": "Paquete de mods del sitio",
   "mods": [
     { "archivo": "fps.js", "nombre": "Contador de FPS" },
     { "archivo": "bienvenida.js", "nombre": "Mensajes de bienvenida" },
+    { "archivo": "mando.js", "nombre": "Mando de Xbox - control completo" },
     { "archivo": "java-real.jar", "nombre": "Java Real (TeaVM) - mod compilado 100% desde Java" }
   ]
 }
@@ -98,13 +143,14 @@ Para agregar un mod al paquete de todos los jugadores:
 3. **Sube el numero `version`** (por ejemplo de `1` a `2`): asi los jugadores que
    ya entraron antes veran de nuevo el panel y descargaran la actualizacion.
 
-Este repo ya incluye 3 mods de ejemplo en el paquete (los puedes borrar de
+Este repo ya incluye 4 mods en el paquete (los puedes borrar de
 `mods/mods.json` si no los quieres obligatorios):
 
 | Mod | Que hace |
 | --- | --- |
 | `mods/fps.js` | Contador de FPS en la esquina (pulsa **F6** para ocultarlo) |
 | `mods/bienvenida.js` | Avisos al cargar los mods y bienvenida al entrar a un mundo |
+| `mods/mando.js` | **Mando de Xbox**: todos los controles esenciales, chat con teclado en pantalla, vibracion y ajustes (ver seccion anterior) |
 | `mods/java-real.jar` | **Mod escrito y compilado 100% en Java** (javac + TeaVM). Cuenta tics con un `int` de Java, y **F8** muestra su estado (tics, avisos, tiempo activo) |
 
 ## Como escribir mods en Java REAL (TeaVM)
@@ -166,7 +212,7 @@ Objetos utiles:
 Documentacion completa de la API (en ingles):
 <https://eaglerforge.github.io/>
 
-## Rediseno visual JEFFCRAFT (v3)
+## Rediseno visual JEFFCRAFT (v4)
 
 El sitio tiene su propia identidad visual, y ahora tambien la interfaz del juego:
 
@@ -177,31 +223,33 @@ El sitio tiene su propia identidad visual, y ahora tambien la interfaz del juego
 - **Interfaz (inventario, hotbar, cofres, hornos, etc.):** paleta azul noche
   con marcos azul acero, brillos dorados y la ranura seleccionada de la hotbar
   en oro.
-- **Reset automatico:** al aplicar un rediseno se borra el progreso guardado
-  (mundos y ajustes) UNA sola vez para que todos los jugadores vean los cambios.
-  Los mods instalados NO se tocan.
+- **Texturas de los mods:** las armas del mod Pistolas, el dragon de fuego y
+  los mobs de terror tienen **texturas propias integradas en el juego**
+  (vienen dentro de `assets.epk`).
+- **Sin perder progreso:** los cambios visuales llegan por versionado de URL
+  (`?v=jeff4`), asi que **nadie pierde sus mundos, ajustes ni skins** al
+  actualizar. Nunca se borra el progreso guardado.
 
 ## Estructura del repo
 
 ```
-index.html     Pagina principal (carga el juego, aplica el rediseno visual y exige el paquete de mods)
+index.html     Pagina principal (carga el juego, actualiza los mods de la tienda y exige el paquete de mods)
 IMG_2767.jpeg  Foto original del fondo del menu (panoramica)
 classes.js     El juego (EaglercraftX 1.8.8 + EaglerForge v1.3.2 inyectado)
 ModAPI.js      Nucleo de la API de mods (eventos)
 ModLoader.js   Cargador de mods (URLs, archivos subidos y mods guardados)
 ModGUI.js      Gestor de Mods + TIENDA DE MODS (interfaz en espanol)
-modpack.js     Paquete obligatorio + almacen de mods + lector de .jar
-               (detecta mods de Forge y abre un dialogo explicativo)
-assets.epk     Recursos del juego (texturas, sonidos; logo y GUI de JEFFCRAFT)
+modpack.js     Paquete obligatorio + almacen de mods + lector de .jar +
+               auto-actualizacion de la tienda (detecta mods de Forge y abre un dialogo explicativo)
+assets.epk     Recursos del juego (texturas, sonidos; logo, GUI de JEFFCRAFT y
+               texturas propias de los mods: armas, dragon de fuego, mobs de terror)
 lang/          Traducciones del juego (incluye es_MX, es_ES, es_AR, etc.)
 mods/          Mods del paquete + tienda: mods.json (obligatorios),
-               tienda.json (catalogo de la tienda), fps.js, bienvenida.js,
-               pistolas.js, dragones.js, terror.js, java-real.jar
+               tienda.json (catalogo con versiones), fps.js, bienvenida.js,
+               mando.js, pistolas.js, dragones.js, terror.js, java-real.jar
 tools/
   plantilla-mod-java/   Plantilla Maven+TeaVM para compilar tus propios
                         mods Java (ver COMO-COMPILAR.md)
-scripts de trabajo del rediseno (en el historial de desarrollo):
-  logo, panoramica y GUI generados con los scripts de /scripts
 ```
 
 ## Notas

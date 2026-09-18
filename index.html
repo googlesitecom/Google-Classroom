@@ -15,11 +15,11 @@
 <meta property="og:title" content="JEFFCRAFT 1.8" />
 <meta property="og:description" content="JEFFCRAFT: juega, construye y moddea en tu navegador" />
 
-<script type="text/javascript" src="ModAPI.js?v=jeff3"></script>
-<script type="text/javascript" src="ModLoader.js?v=jeff3"></script>
-<script type="text/javascript" src="ModGUI.js?v=jeff3"></script>
-<script type="text/javascript" src="modpack.js?v=jeff3"></script>
-<script type="text/javascript" src="classes.js?v=jeff3"></script>
+<script type="text/javascript" src="ModAPI.js?v=jeff4"></script>
+<script type="text/javascript" src="ModLoader.js?v=jeff4"></script>
+<script type="text/javascript" src="ModGUI.js?v=jeff4"></script>
+<script type="text/javascript" src="modpack.js?v=jeff4"></script>
+<script type="text/javascript" src="classes.js?v=jeff4"></script>
 <script type="text/javascript">
 "use strict";
 
@@ -101,7 +101,7 @@ window.addEventListener("load", () => {
                 window.eaglercraftXOpts = {
                         demoMode: false,
                         container: "game_frame",
-                        assetsURI: "assets.epk?v=jeff3",
+                        assetsURI: "assets.epk?v=jeff4",
                         localesURI: "lang/",
                         worldsDB: "worlds",
                         logInvalidCerts: true,
@@ -122,56 +122,24 @@ window.addEventListener("load", () => {
 
                 // %%%%%%%%% mods %%%%%%%%%%%%
 
-                // %%%%% rediseno visual JEFFCRAFT v3 %%%%%
-                // Borra el progreso guardado (mundos, ajustes, paquetes de
-                // recursos) UNA sola vez para que todos los jugadores vean los
-                // cambios de diseno. Los mods instalados NO se tocan.
-                var VERSION_DISENO = "3";
-                async function aplicarRediseno() {
-                        try {
-                                if (localStorage.getItem("jc::diseno") === VERSION_DISENO) return;
-                        } catch (e) { return; }
-                        console.log("JEFFCRAFT: aplicando rediseno v" + VERSION_DISENO + " (se borra el progreso guardado)");
-                        // 1) IndexedDB: sistema de archivos del juego
-                        try {
-                                var nombres = [];
-                                if (indexedDB.databases) {
-                                        var dbs = await indexedDB.databases();
-                                        nombres = dbs.map(function (d) { return d.name; }).filter(Boolean);
-                                }
-                                if (!nombres.length) {
-                                        nombres = ["_net_lax1dude_eaglercraft_v1_8_internal_PlatformFilesystem_1_8_8_"];
-                                }
-                                var objetivo = nombres.filter(function (n) { return String(n).indexOf("eaglercraft") !== -1; });
-                                await Promise.all(objetivo.map(function (n) {
-                                        return new Promise(function (res) {
-                                                try {
-                                                        var req = indexedDB.deleteDatabase(n);
-                                                        req.onsuccess = req.onerror = req.onblocked = function () { res(); };
-                                                } catch (e) { res(); }
-                                        });
-                                }));
-                        } catch (e) { console.warn("JEFFCRAFT: no se pudo limpiar IndexedDB:", e); }
-                        // 2) ajustes y perfil guardados en localStorage
-                        try {
-                                var borrar = [];
-                                for (var bi = 0; bi < localStorage.length; bi++) {
-                                        var bk = localStorage.key(bi);
-                                        if (bk && (bk.indexOf("_eaglercraftX") === 0 || (bk.indexOf("eaglercraft") !== -1 && bk.indexOf("ml::") !== 0))) borrar.push(bk);
-                                }
-                                borrar.forEach(function (k) { localStorage.removeItem(k); });
-                        } catch (e) {}
-                        try { localStorage.setItem("jc::diseno", VERSION_DISENO); } catch (e) {}
-                }
+                // %%%%% JEFFCRAFT v4: NADA de borrar progreso %%%%%
+                // Los cambios visuales llegan por versionado de URL
+                // (?v=jeff4 en assets.epk y los scripts), asi que los
+                // jugadores ven el nuevo diseno SIN perder sus mundos,
+                // ajustes ni skins. El progreso guardado NUNCA se toca.
 
                 // Paquete de mods OBLIGATORIO: todo jugador nuevo debe
                 // descargar los mods del sitio (mods/mods.json) antes de jugar.
                 // Se guardan en localStorage, asi solo se descargan una vez.
                 async function arrancarConMods() {
+                        // JEFFCRAFT v4: no se borra NINGUN progreso. Solo se
+                        // actualizan los mods instalados si cambio su version.
                         try {
-                                await aplicarRediseno();
-                        } catch (e) {
-                                console.warn("Error al aplicar el rediseno:", e);
+                                if(window.ModPackGate) {
+                                        await window.ModPackGate.actualizarTienda();
+                                }
+                        }catch(ex) {
+                                console.warn("No se pudo actualizar la tienda de mods:", ex);
                         }
 
                         try {

@@ -1,31 +1,34 @@
 {
-  "version": 1,
+  "version": 3,
   "nombre": "Tienda de Mods de JEFFCRAFT",
-  "descripcion": "Mods hechos a medida para JEFFCRAFT: elige cuales instalar.",
+  "descripcion": "Mods hechos a medida para JEFFCRAFT: elige cuales instalar. Se actualizan solos.",
   "mods": [
     {
       "archivo": "pistolas.js",
       "clave": "pistolas",
+      "version": 3,
       "nombre": "Pistolas",
-      "emoji": "\ud83d\udd2b",
+      "emoji": "🔫",
       "categoria": "Combate",
-      "desc": "Modo pistola con balas reales (flechas), HUD de municion, recarga y sonido de disparo. /pistola para activar, R dispara, G recarga."
+      "desc": "4 armas con texturas propias: Pistola, Rifle, Escopeta y Metralleta. Balas con estela de fuego, sonidos de disparo reales, HUD con icono y municion, retroceso y vibracion en el mando. /pistola /rifle /escopeta /metralleta · R dispara · G recarga."
     },
     {
       "archivo": "dragones.js",
       "clave": "dragones",
+      "version": 3,
       "nombre": "Dragones",
-      "emoji": "\ud83d\udc09",
+      "emoji": "🐉",
       "categoria": "Jefes",
-      "desc": "Invoca dragones de Ender que vuelan sobre tu mundo y lanza aliento de fuego con la tecla B. /dragon para invocar (hasta 6)."
+      "desc": "Dragones DE FUEGO con textura propia (escamas carmesi y ojos naranja) que vuelan en circulos sobre tu mundo. /montar para CABALGARlos: dirige mirando, sube y baja con la camara y lanza aliento de fuego con B o el gatillo derecho. Barra de jefe y rugidos incluidos."
     },
     {
       "archivo": "terror.js",
       "clave": "terror",
+      "version": 3,
       "nombre": "Terror",
-      "emoji": "\ud83d\udc7b",
+      "emoji": "👻",
       "categoria": "Ambiente",
-      "desc": "Noche perpetua, tormenta, ceguera que va y viene, susurros, mensajes inquietantes y apariciones de JEFF a tus espaldas. /terror o tecla V."
+      "desc": "Noche perpetua, tormenta, niebla, latidos, susurros y zombis con texturas de terror (piel palida, sangre, ojos brillantes). Cuando uno se te acerca demasiado... te llevas un susto de pantalla completa. /terror o tecla V. Tu progreso nunca se toca."
     }
   ]
 }
