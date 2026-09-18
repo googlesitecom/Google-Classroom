@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "nombre": "Tienda de Mods de JEFFCRAFT",
+  "descripcion": "Mods hechos a medida para JEFFCRAFT: elige cuales instalar.",
+  "mods": [
+    {
+      "archivo": "pistolas.js",
+      "clave": "pistolas",
+      "nombre": "Pistolas",
+      "emoji": "\ud83d\udd2b",
+      "categoria": "Combate",
+      "desc": "Modo pistola con balas reales (flechas), HUD de municion, recarga y sonido de disparo. /pistola para activar, R dispara, G recarga."
+    },
+    {
+      "archivo": "dragones.js",
+      "clave": "dragones",
+      "nombre": "Dragones",
+      "emoji": "\ud83d\udc09",
+      "categoria": "Jefes",
+      "desc": "Invoca dragones de Ender que vuelan sobre tu mundo y lanza aliento de fuego con la tecla B. /dragon para invocar (hasta 6)."
+    },
+    {
+      "archivo": "terror.js",
+      "clave": "terror",
+      "nombre": "Terror",
+      "emoji": "\ud83d\udc7b",
+      "categoria": "Ambiente",
+      "desc": "Noche perpetua, tormenta, ceguera que va y viene, susurros, mensajes inquietantes y apariciones de JEFF a tus espaldas. /terror o tecla V."
+    }
+  ]
+}

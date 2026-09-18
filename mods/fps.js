@@ -47,11 +47,11 @@
         frames++;
       });
 
-      // F6 (codigo 117) muestra/oculta el contador
+      // F6 muestra/oculta el contador (codigo de tecla Eagler/LWJGL: 64)
       ModAPI.addEventListener("key", function (ev) {
         try {
           var k = ev && (ev.key !== undefined ? ev.key : (ev.keyCode || ev.which));
-          if (String(k) === "117" || k === 117) {
+          if (String(k) === "64" || k === 64) {
             visible = !visible;
             div.style.display = visible ? "block" : "none";
           }

@@ -8,6 +8,29 @@ El multijugador fue posible gracias a lax1dude y ayunami2000.
 El sistema de mods (EaglerForge) fue creado por ZXMushroom63, radmanplays y la
 comunidad de EaglerForge.
 
+## Tienda de Mods (nuevo)
+
+Dentro del **Gestor de Mods** (boton "Mods" del menu) ahora hay una **Tienda de
+Mods** con juegos hechos a medida para JEFFCRAFT. Entras, eliges y pulsas
+**Instalar**; el mod se descarga una vez, queda guardado en tu navegador y se
+carga al instante (sin recargar la pagina).
+
+El catalogo de la tienda esta en `mods/tienda.json` y los mods de la tienda son:
+
+| Mod | Como se usa | Que hace |
+| --- | --- | --- |
+| 🔫 **Pistolas** | `/pistola` activa el modo · **R** dispara · **G** recarga | Balas reales (flechas que vuelan y dañan), HUD de municion (24 balas), sonidos de disparo y recarga, y te regala la "Pistola JEFF" |
+| 🐉 **Dragones** | `/dragon` (o `/dragon 3`) invoca · **B** lanza el aliento · `/dragon matar` los quita | Dragones de Ender reales volando sobre tu mundo (hasta 6) con bolas de fuego que explotan |
+| 👻 **Terror** | `/terror` (o tecla **V**) activa/desactiva | Noche perpetua con tormenta, ceguera que va y viene, susurros y sonidos de cueva, mensajes inquietantes en el chat y apariciones de **JEFF** a tus espaldas que te persiguen |
+
+> **Nota:** los tres mods usan comandos del juego (como `/summon` y
+> `/playsound`). Para que funcionen al 100%, el mundo debe tener los **trucos
+> activados**. Los mundos nuevos de JEFFCRAFT ya nacen con "Permitir trucos:
+> Si"; si creaste un mundo antiguo sin trucos, el mod te avisara en pantalla.
+
+Para agregar un mod a la tienda: sube su `.js` a `mods/` y agrega su entrada en
+`mods/tienda.json` (archivo, clave, nombre, emoji, categoria y descripcion).
+
 ## Como jugar
 
 Sube esta carpeta a cualquier hosting estatico (GitHub Pages, un servidor web,
@@ -143,27 +166,50 @@ Objetos utiles:
 Documentacion completa de la API (en ingles):
 <https://eaglerforge.github.io/>
 
+## Rediseno visual JEFFCRAFT (v3)
+
+El sitio tiene su propia identidad visual, y ahora tambien la interfaz del juego:
+
+- **Logo:** JEFFCRAFT en letras de piedra con relieve 3D, al estilo del logo
+  clasico de Minecraft.
+- **Fondo del menu:** la panoramica gira mostrando el edificio estilo
+  mediterraneo (imagen `IMG_2767.jpeg` del repo).
+- **Interfaz (inventario, hotbar, cofres, hornos, etc.):** paleta azul noche
+  con marcos azul acero, brillos dorados y la ranura seleccionada de la hotbar
+  en oro.
+- **Reset automatico:** al aplicar un rediseno se borra el progreso guardado
+  (mundos y ajustes) UNA sola vez para que todos los jugadores vean los cambios.
+  Los mods instalados NO se tocan.
+
 ## Estructura del repo
 
 ```
-index.html     Pagina principal (carga el juego y exige el paquete de mods)
+index.html     Pagina principal (carga el juego, aplica el rediseno visual y exige el paquete de mods)
+IMG_2767.jpeg  Foto original del fondo del menu (panoramica)
 classes.js     El juego (EaglercraftX 1.8.8 + EaglerForge v1.3.2 inyectado)
 ModAPI.js      Nucleo de la API de mods (eventos)
 ModLoader.js   Cargador de mods (URLs, archivos subidos y mods guardados)
-ModGUI.js      Gestor de Mods (interfaz en espanol, sube .js y .jar)
+ModGUI.js      Gestor de Mods + TIENDA DE MODS (interfaz en espanol)
 modpack.js     Paquete obligatorio + almacen de mods + lector de .jar
                (detecta mods de Forge y abre un dialogo explicativo)
-assets.epk     Recursos del juego (texturas, sonidos)
+assets.epk     Recursos del juego (texturas, sonidos; logo y GUI de JEFFCRAFT)
 lang/          Traducciones del juego (incluye es_MX, es_ES, es_AR, etc.)
-mods/          Mods del paquete + mods.json (manifiesto)
-               (incluye java-real.jar: mod compilado desde Java real)
+mods/          Mods del paquete + tienda: mods.json (obligatorios),
+               tienda.json (catalogo de la tienda), fps.js, bienvenida.js,
+               pistolas.js, dragones.js, terror.js, java-real.jar
 tools/
   plantilla-mod-java/   Plantilla Maven+TeaVM para compilar tus propios
                         mods Java (ver COMO-COMPILAR.md)
+scripts de trabajo del rediseno (en el historial de desarrollo):
+  logo, panoramica y GUI generados con los scripts de /scripts
 ```
 
 ## Notas
 
+- **Mundos nuevos con trucos activados:** para que los mods de la tienda
+  (pistolas, dragones, terror) funcionen directo, los mundos nuevos se crean
+  con "Permitir trucos: Si". Puedes apagarlos en Mas opciones del mundo si
+  prefieres la experiencia clasica (los mods te avisaran si faltan).
 - La version anterior de este repo (cliente unico en un solo index.html,
   EaglercraftX u39 "ultimate") sigue disponible en el historial de Git por si
   la necesitas.
@@ -174,3 +220,7 @@ tools/
   al entrar al **sitio**; en multijugador, cada jugador debe haber entrado al
   sitio para tener los mods instalados (no se pueden forzar mods desde un
   servidor estatico).
+- Limitacion conocida: los selectores de comandos tipo `@p` no funcionan bien
+  en el servidor integrado de esta version; los mods de la tienda usan el
+  nombre del jugador directamente y los comandos se mantienen cortos (el chat
+  tiene un limite de 100 caracteres).

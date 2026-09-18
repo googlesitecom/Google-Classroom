@@ -1,4 +1,23 @@
 function displayGui() {
+  // Un articulo de la tienda cuenta como instalado si su ref (local:clave o
+  // mods/archivo) esta en la lista de mods.
+  window.estaInstaladoModTienda = function (articulo) {
+    var lista;
+    try {
+      lista = JSON.parse(localStorage.getItem("ml::Mods") || "[]");
+    } catch (e) {
+      lista = [];
+    }
+    var clave = (articulo.clave || window.ModStore.sanitize(articulo.archivo));
+    var ref = "local:" + clave;
+    for (var i = 0; i < lista.length; i++) {
+      var x = lista[i];
+      if (x === ref) return true;
+      if (typeof x === "string" && x.indexOf("mods/" + articulo.archivo) !== -1) return true;
+    }
+    return false;
+  };
+
   function gui() {
     if (document.querySelector("#eaglerpl_gui")) {
       document.querySelector("#eaglerpl_gui").remove();
@@ -31,6 +50,128 @@ function displayGui() {
     closeButton.innerHTML = "[X]";
     title.appendChild(closeButton);
     container.appendChild(title);
+
+    // ================= TIENDA DE MODS =================
+    var tiendaBox = document.createElement("div");
+    tiendaBox.id = "jc_tienda";
+    tiendaBox.style =
+      "margin: 10px 0 18px 0; padding: 12px 14px; background: rgba(16,23,32,0.75);" +
+      "border: 2px solid #2a3a4d; border-radius: 6px;";
+    var tiendaTitulo = document.createElement("h2");
+    tiendaTitulo.style =
+      "margin: 0 0 4px 0; font-size: 1.05rem; color: #eeb13e; text-shadow: 0 0 4px #000;";
+    tiendaTitulo.innerHTML =
+      "\ud83d\uded2 Tienda de Mods <span style='color:#7d8fa3;font-size:0.6em'>\u00b7 hechos para JEFFCRAFT</span>";
+    tiendaBox.appendChild(tiendaTitulo);
+    var tiendaSub = document.createElement("p");
+    tiendaSub.style = "margin: 2px 0 10px 0; font-size: 0.78rem; color: #9fb0c4;";
+    tiendaSub.textContent =
+      "Elige cuales instalar. Se descargan una vez y quedan guardados en tu navegador.";
+    tiendaBox.appendChild(tiendaSub);
+    var tiendaCargando = document.createElement("p");
+    tiendaCargando.style = "font-size: 0.8rem; color: #7d8fa3;";
+    tiendaCargando.textContent = "Cargando la tienda...";
+    tiendaBox.appendChild(tiendaCargando);
+    container.appendChild(tiendaBox);
+
+    // catalogo de la tienda
+    (function cargarTienda() {
+      fetch("mods/tienda.json", { cache: "no-store" })
+        .then(function (r) {
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          return r.json();
+        })
+        .then(function (cat) {
+          tiendaCargando.remove();
+          (cat.mods || []).forEach(function (articulo) {
+            var instalado = window.estaInstaladoModTienda
+              ? window.estaInstaladoModTienda(articulo)
+              : false;
+            var tarjeta = document.createElement("div");
+            tarjeta.style =
+              "display: flex; align-items: center; gap: 10px; margin: 8px 0;" +
+              "padding: 10px 12px; background: rgba(22,32,44,0.9);" +
+              "border: 1px solid #2a3a4d; border-radius: 5px;";
+            var icono = document.createElement("div");
+            icono.style =
+              "font-size: 1.6rem; width: 44px; text-align: center; flex: 0 0 auto;";
+            icono.textContent = articulo.emoji || "\ud83d\udce6";
+            tarjeta.appendChild(icono);
+            var info = document.createElement("div");
+            info.style = "flex: 1 1 auto; min-width: 0;";
+            var nombreFila = document.createElement("div");
+            nombreFila.style = "font-size: 0.95rem;";
+            nombreFila.innerHTML =
+              "<b style='color:#4fc058'>" + (articulo.nombre || articulo.archivo) + "</b>" +
+              " <span style='color:#7d8fa3;font-size:0.7em'>\u00b7 " + (articulo.categoria || "Mod") + "</span>";
+            info.appendChild(nombreFila);
+            var desc = document.createElement("div");
+            desc.style =
+              "font-size: 0.75rem; color: #b7c5d4; line-height: 1.35; margin-top: 2px;";
+            desc.textContent = articulo.desc || "";
+            info.appendChild(desc);
+            tarjeta.appendChild(info);
+            var boton = document.createElement("button");
+            if (instalado) {
+              boton.innerHTML = "\u2713 Instalado";
+              boton.disabled = true;
+              boton.style =
+                "flex: 0 0 auto; padding: 8px 12px; cursor: default; font-family: 'Minecraftia', sans-serif;" +
+                "font-size: 0.85rem; color: #9fe8a6; background: #1d5526; border: 2px solid #0c2412;" +
+                "box-shadow: inset 2px 2px 0 #2d7a38, inset -2px -2px 0 #123f18; text-shadow: 1px 1px 0 #000;";
+            } else {
+              boton.innerHTML = "Instalar";
+              boton.style =
+                "flex: 0 0 auto; padding: 8px 12px; cursor: pointer; font-family: 'Minecraftia', sans-serif;" +
+                "font-size: 0.85rem; color: #eafff0; background: #2d7a38; border: 2px solid #0c2412;" +
+                "box-shadow: inset 2px 2px 0 #4fc058, inset -2px -2px 0 #1d5526; text-shadow: 1px 1px 0 #000;";
+              boton.addEventListener("mouseenter", function () { boton.style.background = "#37913f"; });
+              boton.addEventListener("mouseleave", function () { boton.style.background = "#2d7a38"; });
+              boton.addEventListener("click", function () {
+                boton.disabled = true;
+                boton.innerHTML = "Descargando...";
+                fetch("mods/" + articulo.archivo, { cache: "no-store" })
+                  .then(function (r) {
+                    if (!r.ok) throw new Error("HTTP " + r.status);
+                    return r.arrayBuffer();
+                  })
+                  .then(function (buf) {
+                    return window.instalarArchivo(
+                      articulo.archivo, buf, articulo.nombre || null);
+                  })
+                  .then(function (ref) {
+                    var lista = JSON.parse(localStorage.getItem("ml::Mods") || "[]");
+                    if (lista.indexOf(ref) === -1) lista.push(ref);
+                    localStorage.setItem("ml::Mods", JSON.stringify(lista));
+                    if (window.ModLoader) {
+                      ModLoader([ref]);
+                    }
+                    gui(); // refrescar todo el gestor
+                  })
+                  .catch(function (e) {
+                    boton.disabled = false;
+                    boton.innerHTML = "Reintentar";
+                    window.alert("No se pudo instalar " + (articulo.nombre || articulo.archivo) +
+                      ": " + (e && e.message ? e.message : e));
+                  });
+              });
+            }
+            tarjeta.appendChild(boton);
+            tiendaBox.appendChild(tarjeta);
+          });
+          if (!(cat.mods || []).length) {
+            var vacio = document.createElement("p");
+            vacio.style = "font-size: 0.8rem; color: #7d8fa3;";
+            vacio.textContent = "La tienda esta vacia por ahora.";
+            tiendaBox.appendChild(vacio);
+          }
+        })
+        .catch(function (e) {
+          tiendaCargando.textContent =
+            "No se pudo cargar la tienda (" + (e && e.message ? e.message : e) + ").";
+          tiendaCargando.style.color = "#ff6a6a";
+        });
+    })();
 
     var warningPoster = document.createElement("p");
     warningPoster.style = "font-size: 0.8rem; color: orangered;";
